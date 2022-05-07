@@ -1,0 +1,679 @@
+#!/usr/bin/perl
+#
+# BNOTES: A PERL CGI script to generate HTML pages for BSE banknotes system
+# Author: Hristo Grigorov <hgrigorov@gmail.com>
+# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
+
+use strict; 
+use warnings;
+use CGI;
+use DBH;
+use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
+use HTML::Template;
+
+#
+my $ACTION_LOGIN = "login";
+my $ACTION_LOGOUT = "logout";
+my $ACTION_ABOUT = "about";
+my $ACTION_NEWS = "news";
+my $ACTION_LIBRARY = "library";
+my $ACTION_FIND = "find";
+my $ACTION_COUNTRIES = "countries";
+my $ACTION_VALUTE = "valute";
+my $ACTION_FAKE = "fake";
+#
+my $ACTION_INFO = "info";
+my $ACTION_INFO_FAKE = "ifake";
+my $ACTION_PREVIEW = "preview";
+my $ACTION_PREVIEW_FAKE = "pfake";
+#
+my $PAGE_ABOUT = HTML::Template->new(filename => 'tmpl/page_about.tmpl');
+my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom.tmpl');
+my $PAGE_COUNTRIES = HTML::Template->new(filename => 'tmpl/page_countries.tmpl');
+my $PAGE_FAKE = HTML::Template->new(filename => 'tmpl/page_fake.tmpl');
+my $PAGE_FIND = HTML::Template->new(filename => 'tmpl/page_find.tmpl');
+my $PAGE_INFOFAKE = HTML::Template->new(filename => 'tmpl/page_info_fake.tmpl');
+my $PAGE_INFO = HTML::Template->new(filename => 'tmpl/page_info.tmpl');
+my $PAGE_LIBRARY = HTML::Template->new(filename => 'tmpl/page_library.tmpl');
+my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login.tmpl');
+my $PAGE_MAIN = HTML::Template->new(filename => 'tmpl/page_main.tmpl');
+my $PAGE_NEWS = HTML::Template->new(filename => 'tmpl/page_news.tmpl');
+my $PAGE_PREVIEW_FAKE = HTML::Template->new(filename => 'tmpl/page_preview_fake.tmpl');
+my $PAGE_PREVIEW =  HTML::Template->new(filename => 'tmpl/page_preview.tmpl');
+my $PAGE_TOP_SMALL =  HTML::Template->new(filename => 'tmpl/page_top_small.tmpl');
+my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top.tmpl');
+my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
+my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
+
+
+################################################################################
+# MAIN FUNCTION                                                                
+################################################################################
+
+# connect to database
+DBH::db_connect();
+
+# do some CGI stuff
+my $cgi = new CGI;
+print $cgi->header(-charset => 'utf-8');
+
+# cgi variables
+my $fbid;
+my $fbox, my $fpic, my $pageid, my $strfind;
+
+# import cgi variables
+my $cid = $cgi->param('cid');
+my $bid = $cgi->param('bid');
+$fbid = $cgi->param('fbid');
+$fbox = $cgi->param('fbox');
+$fpic = $cgi->param('fpic');
+my $infoid = $cgi->param('infoid');
+$pageid = $cgi->param('pageid');
+$strfind = $cgi->param('textfield');
+my $action = $cgi->param('action');
+
+$action = $action ? $action : $ACTION_INFO;
+$cid = $cid ? $cid : 55;
+$bid = $bid ? $bid : 55;
+$infoid = $infoid ? $infoid : 55;
+
+#$action = $action ? $action : $ACTION_ABOUT;
+
+# output top page 
+do_page_top() if (needs_top_page());
+do_page_top_small() if (needs_page_top_small());
+
+# handle login action
+#do_page_login() if ($action =~ m/$ACTION_LOGIN/);
+
+# handle logout action
+#do_page_logout() if ($action =~ m/$ACTION_LOGOUT/);
+
+# handle about action
+print $PAGE_ABOUT->output if ($action eq $ACTION_ABOUT);
+
+# handle login action
+do_page_news() if ($action eq $ACTION_NEWS);
+
+# handle login action
+do_page_library() if ($action eq $ACTION_LIBRARY);
+
+# handle find action
+do_page_find() if ($action eq $ACTION_FIND);
+
+# handle countries action
+do_page_countries() if ($action eq $ACTION_COUNTRIES);
+
+# handle valute action
+do_page_valute() if ($action eq $ACTION_VALUTE);
+
+# handle info action
+do_page_info() if ($action eq $ACTION_INFO);
+
+# handle fake action
+do_page_fake() if ($action eq $ACTION_FAKE);
+
+# handle fake info action
+do_page_info_fake() if ($action eq $ACTION_INFO_FAKE);
+
+# handle preview action
+do_page_preview() if ($action eq $ACTION_PREVIEW);
+
+# handle preview fake action
+do_page_preview_fake() if ($action eq $ACTION_PREVIEW_FAKE);
+
+# output bottom page
+do_page_bottom() if (needs_page_bottom());
+
+# disconnect from database
+DBH::db_disconnect();
+
+exit 1;
+
+
+################################################################################
+# UTILITY FUNCTIONS
+################################################################################
+
+
+sub do_page_top {
+
+    $PAGE_TOP->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
+    $PAGE_TOP->param(ACTION_ABOUT => $ACTION_ABOUT);
+    $PAGE_TOP->param(ACTION_LIBRARY => $ACTION_LIBRARY);
+    $PAGE_TOP->param(ACTION_NEWS => $ACTION_NEWS);
+
+    print $PAGE_TOP->output;
+}
+
+sub do_page_bottom {
+
+    $PAGE_BOTTOM->param(ACTION_ABOUT => $ACTION_ABOUT);
+    $PAGE_BOTTOM->param(ACTION_LIBRARY => $ACTION_LIBRARY);
+    $PAGE_BOTTOM->param(ACTION_NEWS => $ACTION_NEWS);
+
+    print $PAGE_BOTTOM->output;
+
+}
+
+sub do_page_top_small {
+
+    my $results = DBH::db_select("SELECT * FROM COUNTRY ORDER BY BCODEVAL");
+    my $buf;
+
+    foreach my $result ( @$results ) {
+        my $BCODEVAL = $result->{BCODEVAL};
+        my $COUNTRY  = $result->{COUNTRY};
+        my $stropt = "\"/cgi-bin/bnotes/bnotes?action=$ACTION_COUNTRIES\&amp;cid=$BCODEVAL\"";
+        
+        my $option = "<option %SELECTED% value=$stropt>$BCODEVAL - $COUNTRY</option>\n";
+        if ($BCODEVAL eq uc($cid)) {
+            $option =~ s/%SELECTED%/selected/g;
+        } else {
+            $option =~ s/%SELECTED%//g;
+        }
+
+        $buf = $buf . $option;
+    }
+
+    $PAGE_TOP_SMALL->param(OPTIONS => $buf);
+    $PAGE_TOP_SMALL->param(ACTION_FIND => $ACTION_FIND);
+
+    print $PAGE_TOP_SMALL->output;
+
+}
+
+sub do_page_login {
+
+    $PAGE_LOGIN->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
+    $PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
+    print $PAGE_LOGIN->output;
+
+}
+
+sub do_page_logout {
+
+    &destroy_session();
+    do_page_msg("LOG OUT", "YOU HAVE SUCCESSFULLY LOGGED OUT OF THE SYSTEM!");
+
+}
+
+sub do_page_find {
+
+    my $results1 = DBH::db_select("SELECT *  FROM COUNTRY WHERE BCODEVAL LIKE \"%$strfind%\" OR CURRENCY LIKE \"%$strfind%\" OR COINNAME LIKE \"%$strfind%\" OR COUNTRY LIKE \"%$strfind%\"");
+
+    my @loop1;
+    foreach my $result ( @$results1 ) {
+
+        my $minfo =  normalize_text($result->{MINFO});
+        #$minfo =~ s/%NL%/<br \/>/g;
+
+        my %row = (    
+            COUNTRY_CODE => lc($result->{BCODEVAL}),
+            BCODEVAL  => $result->{BCODEVAL},
+            COUNTRY   => uc($result->{COUNTRY}),
+            CURRENCY  => $result->{CURRENCY}, 
+            COINNAME  => $result->{COINNAME},
+            EBANKNAME => $result->{EBANKNAME},
+            MINFO     => $minfo,
+            ACTION_COUNTRIES => $ACTION_COUNTRIES
+            );
+
+        push(@loop1, \%row);
+    }
+
+    $PAGE_FIND->param(LOOP_1 => \@loop1);
+    $PAGE_FIND->param(STRFIND => $strfind);
+
+    print $PAGE_FIND->output;
+
+}
+
+sub do_page_countries {
+
+    my $results1 = DBH::db_select("SELECT * FROM BNOTES WHERE BCODE = \'$cid\' ORDER BY NOMINAL");
+    my $results2 = DBH::db_select_row("SELECT * FROM COUNTRY WHERE BCODEVAL = \'$cid\'");
+
+    my @v_loop;
+    foreach my $result ( @$results1 ) {
+
+        my $bfalse = "";
+        $bfalse = "2" if ($result->{BFALSE});
+
+        my $ysimg = "";
+        $ysimg = "1" if ($result->{YSTOPPED} eq "");
+
+        my $ystopped = $result->{YSTOPPED};
+        $ystopped = $ystopped . " г." if ($ystopped ne "");
+
+        my $bfront = "blank.jpg";
+        $bfront = $result->{BFRONT} if ($result->{BFRONT} ne "");
+
+        my $bback = "blank.jpg";
+        $bback = $result->{BBACK} if ($result->{BBACK} ne "");
+
+        my %v_row = ( COUNTRY_CODE => lc($cid),
+                      BFRONT   => lc($bfront),
+                      BBACK    => lc($bback),
+                      NUMB     => $result->{NUMB},
+                      NOMINAL  => $result->{NOMINAL},
+                      BCODE    => $result->{BCODE},
+                      EMISSION => $result->{EMISSION},
+                      SVERSION => $result->{SVERSION},
+                      ACTION_VALUTE => $ACTION_VALUTE,
+                      YSIMG    => $ysimg,
+                      YSTOPPED => $ystopped,
+                      BFALSE   => $bfalse
+            );
+
+        push(@v_loop, \%v_row);
+    }
+
+    my $minfo = normalize_text($results2->{MINFO});
+    #$minfo =~ s/%NL%/<br \/>/g;
+
+    $PAGE_COUNTRIES->param(valutes_loop => \@v_loop);
+    $PAGE_COUNTRIES->param(COUNTRY_CODE => lc($cid));
+    $PAGE_COUNTRIES->param(COUNTRY_NAME => $results2->{COUNTRY});
+    $PAGE_COUNTRIES->param(CURRENCY => $results2->{CURRENCY});
+    $PAGE_COUNTRIES->param(COINNAME => $results2->{COINNAME});
+    $PAGE_COUNTRIES->param(EBANKNAME => $results2->{EBANKNAME});
+    $PAGE_COUNTRIES->param(MINFO => $minfo);
+
+    print $PAGE_COUNTRIES->output;
+}
+
+#
+# Renders valute info page
+#
+sub do_page_valute {
+
+    my $results1 = DBH::db_select("SELECT * FROM BNOTESI WHERE NUMB = $bid ORDER BY INDICATE");
+    my $results2 = DBH::db_select("SELECT * FROM FBNOTESL WHERE NUMB = $bid ORDER BY NUMBF");
+    my $results3 = DBH::db_select_row("SELECT * FROM BNOTES WHERE NUMB = $bid");
+    my $results4 = DBH::db_select("SELECT * FROM BNOTESI WHERE NUMB = $bid");
+    my $results5 = DBH::db_select_row("SELECT * FROM COUNTRY WHERE BCODEVAL LIKE \'$cid\'");
+
+    my @loop1;
+    foreach my $result ( @$results1 ) {
+
+        my %row = (    
+            COUNTRY  => $cid,
+            NUMB     => $result->{NUMB},
+            INDICATE => $result->{INDICATE}, 
+            ACTION_INFO => $ACTION_INFO,
+            SAVEINFO => $result->{SAVEINFO}
+            );
+
+        push(@loop1, \%row);
+    }
+
+    my @fake_loop;
+    if (scalar(@$results2 == 0)) {
+
+        my %row = (
+            COUNTRY   => 0,
+            NUMB      => 0,
+            NUMBF     => 0,
+            ACTION_FAKE => 0,
+            NAMEFALSE => "<b>NOT AVAILABLE</b>" 
+            );
+
+        push(@fake_loop, \%row);
+
+    } else {
+        foreach my $result ( @$results2 ) {
+
+            my %row = (    
+                COUNTRY   => $cid,
+                NUMB      => $result->{NUMB},
+                NUMBF     => $result->{NUMBF},
+                ACTION_FAKE => $ACTION_FAKE,
+                NAMEFALSE => $result->{NAMEFALSE}
+        	);
+
+            push(@fake_loop, \%row);
+        }
+    }
+
+    my $fidx = 0;
+    my $bidx = 0;
+    my @front_loop;
+    my @back_loop;
+    foreach my $result ( @$results4 ) {
+
+        # [14:55:28] Рени Бъчварова: при резолюция 600 х 800 - размер 460 х 225
+        # [14:55:51] Рени Бъчварова: при резолюция 1024 х 768 - размер 607 х 300
+
+        my $cx = 1.35;
+        my $cy = 1.40;
+
+        if ($result->{XF} && $result->{YF}) {
+
+            my $xf = $result->{XF}*$cx if ($result->{XF} > 0);
+            my $yf = $result->{YF}*$cy if ($result->{YF} > 0);
+
+            my %f_row = (
+                COUNTRY  => $cid,
+                IDX      => $fidx++,
+                XF       => $xf,
+                YF       => $yf,
+                BID      => $result->{NUMB},
+                INDICATE => $result->{INDICATE},
+                SAVEINFO => $result->{SAVEINFO},
+                ACTION_INFO => $ACTION_INFO
+                );
+
+            push(@front_loop, \%f_row);
+
+        }
+
+        if ($result->{XB} && $result->{YB}) {
+
+            my $xb = $result->{XB}*$cx if ($result->{XB} > 0);
+            my $yb = $result->{YB}*$cy if ($result->{YB} > 0);
+
+            my %b_row = (
+                COUNTRY  => $cid,
+                IDX      => $bidx++,
+                XB       => $xb,
+                YB       => $yb,
+                BID      => $result->{NUMB},
+                INDICATE => $result->{INDICATE},
+                SAVEINFO => $result->{SAVEINFO},
+                ACTION_INFO => $ACTION_INFO
+                );
+
+            push(@back_loop, \%b_row);
+
+        }
+
+    }
+
+    # do some additional data adjasments
+    my $minfo = normalize_text($results3->{MINFO});
+
+    my $maddinfo = normalize_text($results3->{MADDINFO});
+
+    my $muvinfo = normalize_text($results3->{MUVINFO});
+
+    $PAGE_VALUTE->param(protect_loop => \@loop1);
+    $PAGE_VALUTE->param(fake_loop => \@fake_loop);
+    $PAGE_VALUTE->param(front_zone_loop => \@front_loop);
+    $PAGE_VALUTE->param(back_zone_loop => \@back_loop);
+    $PAGE_VALUTE->param(COUNTRY => $cid);
+    $PAGE_VALUTE->param(COUNTRY_CODE => lc($cid));
+    $PAGE_VALUTE->param(BID => $bid);
+    $PAGE_VALUTE->param(MINFO => $minfo);
+    $PAGE_VALUTE->param('CURRENCY', uc($results5->{CURRENCY}));
+    $PAGE_VALUTE->param(NOMINAL => $results3->{NOMINAL});
+    $PAGE_VALUTE->param(EMISSION => $results3->{EMISSION});
+    $PAGE_VALUTE->param(BFRONT => lc($results3->{BFRONT}));
+    $PAGE_VALUTE->param(BBACK => lc($results3->{BBACK}));
+    $PAGE_VALUTE->param(MADDINFO => $maddinfo);
+    $PAGE_VALUTE->param(MUVINFO => $muvinfo);
+
+    $PAGE_VALUTE->param(ACTION_PREVIEW => $ACTION_PREVIEW);
+
+    print $PAGE_VALUTE->output;
+
+}
+
+sub do_page_info {
+
+    return if ($cid eq "" or $bid eq "" or $infoid eq "");
+
+    my $results = DBH::db_select_row("SELECT * FROM BNOTESI WHERE NUMB = $bid AND INDICATE = $infoid");
+
+    my $saveinfo = normalize_text($results->{SAVEINFO});
+    #$saveinfo =~ s/%NL%/<br \/>/g;
+
+    my $sinfoadd = normalize_text($results->{SINFOADD});
+    #$sinfoadd =~ s/%NL%/<br \/>/g;
+
+    my $pictname = lc($results->{PICTNAME});
+    $pictname = "blank.jpg" if ($pictname eq "");
+
+    $PAGE_INFO->param(COUNTRY  => $cid);
+    $PAGE_INFO->param(SAVEINFO => $saveinfo);
+    $PAGE_INFO->param(SINFOADD => $sinfoadd);
+    $PAGE_INFO->param(PICTNAME => $pictname);
+
+    print $PAGE_INFO->output;
+
+}
+
+sub do_page_fake {
+
+    my $results1 = DBH::db_select("SELECT * FROM FBNOTES WHERE NUMBF = $fbid");
+    my $results2 = DBH::db_select_row("SELECT * FROM FBNOTESL WHERE NUMBF = $fbid");
+    my $results3 = DBH::db_select_row("SELECT * FROM BNOTES WHERE NUMB = $bid");
+    my $results4 = DBH::db_select_row("SELECT * FROM FBNOTESL WHERE NUMB = $bid AND NUMBF = $fbid");
+    my $results5 = DBH::db_select("SELECT * FROM FBNOTES WHERE NUMBF = $fbid");
+
+    my @loop1;
+    foreach my $result ( @$results1 ) {
+
+        my %row = (    
+            FBOX => $result->{FBOX},
+            NAMEFALSE => $result->{NAMEFALSE}
+            );
+
+        push(@loop1, \%row);
+    }
+
+    my $idxf = 0;
+    my $idxb = 0;
+    my @front_loop;
+    my @back_loop;
+
+    foreach my $result ( @$results5 ) {
+
+        if ($result->{FX1} && $result->{FY1}) {
+
+            my $fx1 = $result->{FX1}*1.18;
+            my $fy1 = $result->{FY1}*1.10;
+
+            my $fw = ($result->{FX2}*1.20) - ($result->{FX1}*1.20);
+            my $fh = ($result->{FY2}*1.20) - ($result->{FY1}*1.20);
+
+            my %f_row = (    
+                FW        => $fw,
+                FH        => $fh,
+                FX1       => $fx1,
+                FY1       => $fy1,
+                IDX       => $idxf++,
+                FBOX      => $result->{FBOX},
+                NAMEFALSE => $result->{NAMEFALSE}
+                );
+
+            push(@front_loop, \%f_row);
+
+        }
+
+        if ($result->{BX1} && $result->{BY1}) {
+
+            my $bx1 = $result->{BX1}*1.18;
+            my $by1 = $result->{BY1}*1.10;
+
+            my $bw = ($result->{BX2}*1.20) - ($result->{BX1}*1.20);
+            my $bh = ($result->{BY2}*1.20) - ($result->{BY1}*1.20);
+
+            my %b_row = (
+                BW        => $bw,
+                BH        => $bh,
+                BX1       => $bx1,
+                BY1       => $by1,
+                IDX       => $idxb++,
+                FBOX      => $result->{FBOX},
+                NAMEFALSE => $result->{NAMEFALSE}
+                );
+
+            push(@back_loop,  \%b_row);
+        }
+    }
+
+    my $minfo = normalize_text($results4->{MINFO});
+    #$minfo =~ s/%NL%/<br \/>/g; 
+
+    $PAGE_FAKE->param(fake_loop => \@loop1);
+    $PAGE_FAKE->param(front_zone_loop => \@front_loop);
+    $PAGE_FAKE->param(back_zone_loop => \@back_loop);
+    $PAGE_FAKE->param(COUNTRY => $cid);
+    $PAGE_FAKE->param(COUNTRY_CODE => lc($cid));
+    $PAGE_FAKE->param(FBID => $fbid);
+    $PAGE_FAKE->param(MINFO => $minfo);
+    $PAGE_FAKE->param(NOMINAL => $results3->{NOMINAL});
+    $PAGE_FAKE->param(EMISSION => $results3->{EMISSION});
+    $PAGE_FAKE->param(FALSEPICSF => lc($results4->{FALSEPICSF}));
+    $PAGE_FAKE->param(FALSEPICSB => lc($results4->{FALSEPICSB}));
+
+    $PAGE_FAKE->param(NAMEFALSE => $results4->{NAMEFALSE});
+
+    $PAGE_FAKE->param(ACTION_INFO_FAKE => $ACTION_INFO_FAKE);
+    $PAGE_FAKE->param(ACTION_PREVIEW_FAKE => $ACTION_PREVIEW_FAKE);
+
+    print $PAGE_FAKE->output;
+}
+
+sub do_page_info_fake {
+
+    return if ($cid eq "" or $fbid eq "" or $fbox eq "");
+
+    my $results1 = DBH::db_select_row("SELECT * FROM FBNOTES WHERE NUMBF = $fbid AND FBOX = $fbox");
+
+
+    my $poriginal = "blank.jpg";
+    $poriginal = $results1->{PORIGINAL} if ($results1->{PORIGINAL} ne "");
+
+    my $pfalse = "blank.jpg";
+    $pfalse = $results1->{PFALSE} if ($results1->{PFALSE} ne "");
+
+    my $minfoo = normalize_text($results1->{MINFOO});
+    #$minfoo =~ s/%NL%/<br \/>/g;
+
+    my $minfof = normalize_text($results1->{MINFOF});
+    #$minfof =~ s/%NL%/<br \/>/g;
+
+    $PAGE_INFOFAKE->param(COUNTRY => $cid);
+    $PAGE_INFOFAKE->param(PORIGINAL => $poriginal);
+    $PAGE_INFOFAKE->param(PFALSE => $pfalse);
+    $PAGE_INFOFAKE->param(NAMEFALSE => $results1->{NAMEFALSE});
+    $PAGE_INFOFAKE->param(MINFOO => $minfoo);
+    $PAGE_INFOFAKE->param(MINFOF => $minfof);
+
+    print $PAGE_INFOFAKE->output;
+}
+
+sub do_page_preview {
+
+    my $results1 = DBH::db_select_row("SELECT * FROM BNOTES WHERE NUMB = $bid");
+
+    if (!$pageid) { 
+        $PAGE_PREVIEW->param(IMAGE => $results1->{BFRONT});
+    } else {
+        $PAGE_PREVIEW->param(IMAGE => $results1->{BBACK});
+    }
+
+    $PAGE_PREVIEW->param(COUNTRY => lc($results1->{BCODE}));
+
+    print $PAGE_PREVIEW->output;
+
+}
+
+sub do_page_preview_fake {
+
+    $PAGE_PREVIEW_FAKE->param(COUNTRY => $cid);
+    $PAGE_PREVIEW_FAKE->param(IMAGE   => $fpic);
+
+    print $PAGE_PREVIEW_FAKE->output;
+}
+
+sub do_page_news {
+
+    my $msg = "";
+    open(FD, "../../html/bnotes/data/fnew.txt");
+    while(<FD>) {
+        $_ =~ s/%NL%/<br \/>/g; 
+        $msg = $msg . $_; 
+    }
+    close(FD);
+
+    $PAGE_NEWS->param(NEWS => $msg);
+
+    print $PAGE_NEWS->output;
+
+}
+
+sub do_page_library {
+
+
+    my $msg = "";
+    open(FD, "../../html/bnotes/data/ffact.txt") || die "Can't open ffact.txt: $!\n";
+    while(<FD>) { 
+        $_ =~ s/%NL%/<br \/>/g;
+        $msg = $msg . $_; 
+    }
+    close(FD);
+
+    $PAGE_LIBRARY->param(FFACT => $msg);
+
+    print $PAGE_LIBRARY->output;
+
+}
+
+sub do_page_msg($$) {
+
+    my ($title, $msg) = @_;
+
+    $PAGE_MSG->param(TITLE => $title);
+    $PAGE_MSG->param(MESSAGE => $msg);
+
+    print $PAGE_MSG->output;
+
+}
+
+sub normalize_text($) {
+
+    my $txt = shift;
+    $txt = $txt ? $txt : 'normalize_text';
+
+    $txt =~ s/%NL%/<br \/>/g;
+    $txt =~ s/%SP%/\&nbsp\;/g;
+    $txt =~ s/%TAB%/\&nbsp\;\&nbsp\;\&nbsp\;\&nbsp\;/g;
+    
+    return $txt;
+}
+
+# returns true for actions that do not require authentication
+sub needs_top_page {
+
+    return 1 if ($action eq $ACTION_LOGIN or $action eq $ACTION_LOGOUT or
+                 $action eq $ACTION_ABOUT or $action eq $ACTION_NEWS or 
+                 $action eq $ACTION_LIBRARY);
+
+    return 0;
+
+}
+
+
+sub needs_page_top_small {
+
+    return 1 if ( $action eq $ACTION_FIND or $action eq $ACTION_COUNTRIES or
+                  $action eq $ACTION_VALUTE or $action eq $ACTION_FAKE);
+
+    return 0;
+
+}
+
+sub needs_page_bottom {
+
+    return 0 if ( $action eq $ACTION_INFO or $action eq $ACTION_INFO_FAKE or
+                  $action eq $ACTION_PREVIEW or $action eq $ACTION_PREVIEW_FAKE);
+
+    return 1;
+
+}
+
+
+# EOF

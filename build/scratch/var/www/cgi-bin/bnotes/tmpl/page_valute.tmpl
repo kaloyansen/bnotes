@@ -1,0 +1,155 @@
+
+<script type="text/javascript">var light = 0;</script>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr> 
+                    
+<td width="23%" height="45" rowspan="2" align="left" valign="top"> 
+
+<!-- INFORMATION TABLE-->
+
+<table width="100%" border="0" cellpadding="1" cellspacing="1" class="conntent">
+
+<tr></tr><tr></tr>
+
+<tr>
+ <td align="center" colspan="2">
+  <a href="/cgi-bin/bnotes/bnotes?action=countries&amp;cid=<TMPL_VAR NAME=COUNTRY>"><img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE>/<TMPL_VAR NAME=COUNTRY_CODE>.jpg" height="40" style="border:0" /></a>
+ </td>
+</tr>
+
+<tr></tr><tr></tr><tr></tr>
+
+<tr><td colspan="2" align="center" style="background-color:lightgrey"><strong>SECURITY FEATURES</strong></td></tr>
+
+<!-- PROTECT -->
+
+<TMPL_LOOP NAME="protect_loop"><tr> 
+  <td width="16%" align="center">&nbsp;<img src="/bnotes/images/ok1.gif" width="21" height="21" border="0" /></td>
+  <td><a href="javascript:" onClick="MM_openBrWindow('/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_INFO>&amp;bid=<TMPL_VAR NAME=NUMB>&amp;infoid=<TMPL_VAR NAME=INDICATE>&amp;cid=<TMPL_VAR NAME=COUNTRY>',
+      'Information','width=800,height=600,scrollbars=yes,resizable=yes')"><TMPL_VAR NAME=SAVEINFO>
+ </a></td> </tr></TMPL_LOOP>
+
+ <!-- END PROTECT -->
+
+<tr><td align="center">&nbsp;</td><td>&nbsp;</td></tr>
+
+<tr><td colspan="2" align="center" style="background-color:lightgrey"><strong>COUNTERFEITS</strong></td></tr>
+
+<!-- FAKE -->
+
+<TMPL_LOOP NAME="fake_loop"><tr> 
+  <td align="center"><img src="/bnotes/images/fake.gif"  width="21" height="21" /></td>
+  <td><a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_FAKE>&amp;cid=<TMPL_VAR NAME=COUNTRY>&amp;bid=<TMPL_VAR NAME=NUMB>&amp;fbid=<TMPL_VAR NAME=NUMBF>"><TMPL_VAR NAME=NAMEFALSE></a>
+  </td></tr>
+</TMPL_LOOP>
+
+<!-- END FAKE -->
+
+<tr><td align="center">&nbsp;</td><td>&nbsp;</td></tr>
+
+<!-- INFORMATION -->
+
+<tr><td colspan="2" align="center" style="background-color:lightgrey"><strong>INFORMATION</strong></td></tr>
+
+<tr> 
+  <td align="center"><img src="/bnotes/images/information.gif" width="21" height="21" /></td>
+  <td><TMPL_VAR NAME=MINFO></td>
+</tr>
+<!-- END INFORMATION -->
+
+</table>
+
+<!-- END TABLE INFORMATION -->
+
+</td>
+<td width="1%" align="left" valign="top" style="background-image:url(/bnotes/images/blueline_mid.gif)">
+<img src="/bnotes/images/blueline_top.gif" width="13" height="226" /></td>
+<td width="76%" rowspan="2" align="left" valign="top"> 
+<table width="100%" border="0" cellspacing="0" cellpadding="1">
+<tr><td> 
+
+<!-- TABLE BANKNOTE -->
+
+<table width="98%" border="0" align="center" cellpadding="1" cellspacing="1">
+<tr>   
+  <td class="Title">Currency: <strong><TMPL_VAR NAME=CURRENCY></strong>, Denomination: <strong><TMPL_VAR NAME=NOMINAL></strong>, Emission: <strong><TMPL_VAR NAME=EMISSION></strong></td>
+  <td align="right" class="conntent"><img src="/bnotes/images/uv_off.gif" name="imglight" width="21" height="21" align="absmiddle" id="imglight" /> 
+  <a href="javascript:" onClick="javascript:
+	if (light == 0) {
+		document.imglight.src='/bnotes/images/uv_on.gif';
+		document.imgfront.src='/bnotes/data/<TMPL_VAR NAME=COUNTRY>/uv<TMPL_VAR NAME=BFRONT>';
+		document.imgback.src='/bnotes/data/<TMPL_VAR NAME=COUNTRY>/uv<TMPL_VAR NAME=BBACK>';
+		light = 1;
+	} else {
+		document.imglight.src='/bnotes/images/uv_off.gif';
+		document.imgfront.src='/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BFRONT>';
+		document.imgback.src='/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BBACK>';
+		light = 0;
+	} ">UV Image</a></td>
+</tr>
+</table>
+
+<table width="98%" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#666666">
+<tr> 
+  <td><table width="100%" border="0" cellspacing="0" cellpadding="3">
+  <tr bgcolor="#FFFFFF" class="conntent"> 
+  <td>
+    <div style="name:fimg; position:relative; z-index:2;" id="fimg"><a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_PREVIEW>&bid=<TMPL_VAR NAME=BID>">
+      <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BFRONT>" name="imgfront" width="600px" border="0" id="imgfront" /></a>
+      <TMPL_LOOP NAME="front_zone_loop">
+      <div id="zonef<TMPL_VAR NAME=IDX>" style="position:absolute; left:0px; top:0px; width:22px; height:24px; z-index:1">
+        <a href="javascript:"><img src="/bnotes/images/about.gif" alt="<TMPL_VAR NAME=SAVEINFO>" width="18" height="20" border="0"
+         onClick="MM_openBrWindow('/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_INFO>&bid=<TMPL_VAR NAME=BID>&amp;infoid=<TMPL_VAR NAME=INDICATE>&amp;cid=<TMPL_VAR NAME=COUNTRY>',
+         'Information','width=800, height=600, scrollbars=yes, resizable=yes')" /></a>
+      </div>
+         <script type="text/javascript">MoveLayers("zonef<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XF>, <TMPL_VAR NAME=YF>, 'fimg');</script>
+      </TMPL_LOOP>
+   </div>
+  </td>
+</tr>
+</table></td></tr></table>
+                              
+<br />
+
+<table width="98%" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#666666">
+<tr> 
+  <td><table width="100%" border="0" cellspacing="0" cellpadding="3">
+  <!--  <tr class="titlewhite" ><td height="25" background="/bnotes/images/bg_mid.gif" class="titlewhite">
+  <img src="/bnotes/images/bullet_small.gif" width="7" height="7"></td></tr> -->
+  <tr bgcolor="#FFFFFF" class="conntent"> 
+  <td>
+    <div style="name: bimg; position:relative; z-index:2" id="bimg"><a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_PREVIEW>&bid=<TMPL_VAR NAME=BID>&amp;pageid=1">
+      <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BBACK>" name="imgback" width="600px" border="0" id="imgback" /></a>
+      <TMPL_LOOP NAME="back_zone_loop">
+      <div id="zoneb<TMPL_VAR NAME=IDX>" style="display:block; position:absolute; left:0px; top:0px; width:22px; height:24px; z-index:1">
+        <a href="javascript:"><img src="/bnotes/images/about.gif" alt="<TMPL_VAR NAME=SAVEINFO>" width="18" height="20" border="0"
+         onClick="MM_openBrWindow('/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_INFO>&bid=<TMPL_VAR NAME=BID>&amp;infoid=<TMPL_VAR NAME=INDICATE>&amp;cid=<TMPL_VAR NAME=COUNTRY>',
+         'Information','width=800,height=600,scrollbars=yes,resizable=yes')" /></a>
+      </div>
+      <script type="text/javascript">MoveLayers("zoneb<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XB>, <TMPL_VAR NAME=YB>, 'bimg');</script>
+      </TMPL_LOOP>
+    </div>
+  </td>
+</tr>
+</table></td></tr></table>
+
+<!-- END TABLE BANKNOTE -->
+
+</td></tr></table></td></tr>
+
+<tr><td align="left" valign="bottom" style="background-image:url(/bnotes/images/blueline_mid.gif)">
+<img src="/bnotes/images/blueline_bot.gif" width="13" height="265" /></td></tr>
+</table>
+
+<hr noshade size="1">
+
+<table width="98%" border="0" align="center" cellpadding="1" cellspacing="1" >
+  <tr><td class="maintitle">INFORMATION</td></tr>
+  <tr><td class="conntent"><TMPL_VAR NAME=MADDINFO></td></tr>
+  <tr><td class="maintitle"><br />UV Image</td></tr>
+  <tr><td class="conntent"><TMPL_VAR NAME=MUVINFO></td></tr>
+</table>
+
+<span class="maintitle"> </span>
+

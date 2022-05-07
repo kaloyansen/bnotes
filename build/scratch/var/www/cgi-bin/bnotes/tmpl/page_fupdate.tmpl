@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="bg" xml:lang="bg">
+<head>
+  <title>SOFTWARE CATALOGUE BANKNOTES</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link href="/bnotes/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body style="leftmargin: 0; topmargin: 0">
+
+<br /><br />
+<form name="formindex" action="/cgi-bin/bnotes/badmin" method="POST" enctype="multipart/form-data">
+  <table width="24%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#666666">
+    <tr>
+      <td>
+        <table width="100%" border="0" cellpadding="2" cellspacing="0" bgcolor="#FFFFFF">
+          <tr align="left" >
+            <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)" class="titlewhite">
+	      &nbsp;UPDATE FILES
+            </td>
+
+          <tr align="left"> 
+            <td align="right" height="40" class="conntent">&nbsp;&nbsp;<strong>Folder:</strong></td>
+            <td><input name="directory" type="text" id="directory" size="55" /></td>
+	  </tr>
+
+          <tr align="left">
+            <td align="right" height="40" class="conntent">&nbsp;&nbsp;<strong>Back Up:</strong></td>
+            <td colspan="3"><input type="file" name="imgfile" size="38" /></td>
+          </tr>
+
+          <tr align="right" > 
+            <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
+	      <input name="action" type="hidden" value="12" />
+              <input name="Submit" type="submit" class="button" value="Update" />&nbsp;
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>            
+</form>
+<br />
+
+</body>
+</html>

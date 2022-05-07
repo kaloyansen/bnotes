@@ -1,0 +1,7 @@
+dbdata/
+.project
+.buildpath
+.settings/
+error.log
+.db
+.db.json

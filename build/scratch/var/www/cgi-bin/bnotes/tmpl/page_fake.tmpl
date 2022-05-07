@@ -1,0 +1,141 @@
+<script type="text/javascript">
+  function info(fbox) {
+    MM_openBrWindow('/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_INFO_FAKE>&fbid=<TMPL_VAR NAME=FBID>&fbox=' + fbox + '&cid=<TMPL_VAR NAME=COUNTRY>',
+      'Information','width=800, height=600, scrollbars=yes, resizable=yes'); }
+</script>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>                   
+    <td width="23%" height="45" rowspan="2" align="left" valign="top"> 
+
+<!-- FAKE TABLE-->
+
+    <table width="100%" border="0" cellpadding="1" cellspacing="1" class="conntent">
+
+      <tr></tr><tr></tr>
+
+      <tr><td align="center" colspan="2">
+        <a href="/cgi-bin/bnotes/bnotes?action=countries&amp;cid=<TMPL_VAR NAME=COUNTRY>"><img src="/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE>/<TMPL_VAR NAME=COUNTRY_CODE>.jpg" height="40" style="border:0" /></a>
+      </td></tr>
+
+      <tr></tr><tr></tr><tr></tr>
+
+      <tr><td colspan="2" align="center" style="background-color:lightgrey"><strong>COUNTERFEITS</strong></td></tr>
+
+      <TMPL_LOOP NAME="fake_loop">
+      <tr> 
+        <td width="16%" align="center"><img src="/bnotes/images/ok1.gif" width="21" height="21" /></td>
+        <td><a href="javascript:info(<TMPL_VAR NAME=FBOX>);"><TMPL_VAR NAME=NAMEFALSE></a> </td>
+      </tr>
+      <tr> 
+        <td align="center">&nbsp;</td>
+        <td>&nbsp;</td>
+      </tr>
+      </TMPL_LOOP>
+
+<!-- END TABLE FAKE -->
+
+    </table> 
+
+
+  </td>
+  <td width="1%" align="left" valign="top" style="background-image:url(/bnotes/images/blueline_mid.gif)">
+    <img src="/bnotes/images/blueline_top.gif" width="13" height="226" />
+  </td>
+  <td width="76%" rowspan="2" align="left" valign="top"> 
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="1">
+  <tr>                        
+    <td> 
+
+<!-- TABLE BANKNOTE -->
+
+  <table width="98%" border="0" align="center" cellpadding="1" cellspacing="1">
+    <tr>
+      <td class="Title">DENOMINATION: <strong><TMPL_VAR NAME=NOMINAL></strong>, SERIES: <strong><TMPL_VAR NAME=EMISSION></strong>, TYPE: <strong><TMPL_VAR NAME=NAMEFALSE></strong></td>                
+      <td align="right" class="conntent">&nbsp; </td>
+    </tr>
+  </table>
+			
+  <table width="98%" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#666666">
+    <tr> 
+      <td>
+        <table width="100%" border="0" cellspacing="0" cellpadding="3">
+          <tr bgcolor="#FFFFFF" class="conntent"> 
+            <td>
+              <div style="name: fimg; position: relative; z-index:2" id="fimg">
+                <a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_PREVIEW_FAKE>&amp;cid=<TMPL_VAR NAME=COUNTRY>&amp;fpic=<TMPL_VAR NAME=FALSEPICSF>">
+                <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=FALSEPICSF>" width="550" border="0" /></a>
+                <TMPL_LOOP NAME="front_zone_loop">
+                <div id="zonef<TMPL_VAR NAME=IDX>" style="position:absolute; left:288px; top:351px; width:<TMPL_VAR NAME=FW>px; height:<TMPL_VAR NAME=FH>px; z-index:1">
+                <table title="<TMPL_VAR NAME=NAMEFALSE>" width="100%" height="100%" border="1" cellpadding="1" cellspacing="0" bordercolor="#FF6600"  
+                 style="CURSOR: hand" onClick="info(<TMPL_VAR NAME=FBOX>);">
+                  <tr><td>&nbsp;</td></tr>
+                </table>
+                </div>
+                <script type="text/javascript">MoveLayers("zonef<TMPL_VAR NAME=IDX>",<TMPL_VAR NAME=FX1>,<TMPL_VAR NAME=FY1>, 'fimg');</script>
+	        </TMPL_LOOP>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+            
+  <br />
+  <table width="98%" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#666666">
+    <tr> 
+      <td>
+      <table width="100%" border="0" cellspacing="0" cellpadding="3">
+        <tr bgcolor="#FFFFFF" class="conntent"> 
+          <td>
+            <div style="name: bimg; position: relative; z-index:2" id="bimg">
+              <a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_PREVIEW_FAKE>&amp;cid=<TMPL_VAR NAME=COUNTRY>&amp;fpic=<TMPL_VAR NAME=FALSEPICSB>">
+              <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=FALSEPICSB>" width="550" border="0" /></a>
+	      <TMPL_LOOP NAME="back_zone_loop">
+                <div id="zoneb<TMPL_VAR NAME=IDX>" style="position:absolute; left:288px; top:410px; width:<TMPL_VAR NAME=BW>px; height:<TMPL_VAR NAME=BH>px; z-index:1;">
+                <table title="<TMPL_VAR NAME=NAMEFALSE>" width="100%" height="100%" border="1" cellpadding="1" cellspacing="0" bordercolor="#FF6600" 
+                 style="CURSOR: hand" onClick="javascript:info(<TMPL_VAR NAME=FBOX>);">
+                <tr><td>&nbsp;</td></tr>
+                </table>
+              </div>
+              <script type="text/javascript">MoveLayers("zoneb<TMPL_VAR NAME=IDX>",<TMPL_VAR NAME=BX1>,<TMPL_VAR NAME=BY1>, 'bimg');</script>
+	    </TMPL_LOOP>
+          </td>
+        </tr>
+      </table>
+      </td>
+    </tr>
+  </table>
+
+  <br />
+  <table width="98%" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#666666">
+    <tr>
+      <td>
+      <table width="100%" border="0" cellspacing="0" cellpadding="3">
+        <tr bgcolor="#FFFFFF" class="conntent">
+          <td>
+	   <img src="/bnotes/images/information.gif" width="21" height="21" />&nbsp;<strong>Information</strong>
+           <br /><br />
+           <TMPL_VAR NAME=MINFO>
+          </td>
+        </tr>
+      </table>
+      </td>
+    </tr>
+  </table>
+
+<!-- END TABLE BANKNOTE -->
+
+ </td></tr> </table></td></tr>
+
+  <tr> 
+    <td align="left" valign="bottom" style="background-image:url(/bnotes/images/blueline_mid.gif)">
+      <img src="/bnotes/images/blueline_bot.gif" width="13" height="265" />
+    </td>
+  </tr>
+</table>
+<span class="maintitle"> </span>
+
+		

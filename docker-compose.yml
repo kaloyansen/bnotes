@@ -1,0 +1,78 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8
+    container_name: database_container
+    volumes:
+      - type: bind
+        # sudo chown -vR $USER build/scratch/var/lib/mysql # may be needed
+        #source: ./build/scratch/var/lib/mysql
+        source: ./dbdata
+        target: /var/lib/mysql
+        read_only: false
+#     - ./build/scratch/var/lib/mysql:/var/lib/mysql
+      - ./build/scratch/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: bseadmin
+      MYSQL_DATABASE: CURRENCY
+      MYSQL_PASSWORD: qaz123wsx
+    healthcheck:
+      test: cat /docker-entrypoint-initdb.d/0_init.sql || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: phpmyadmin_container
+    depends_on:
+      - db
+    ports:
+      - 8066:80
+    restart: always
+    environment:
+      PMA_HOST: db
+
+  maildev:
+    image: maildev/maildev:1.1.0
+    container_name: maildev_container
+    command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
+    ports:
+      - 8077:80
+    restart: always
+
+  kalo:
+    image: kalimage:6.6.6
+    container_name: contalo
+    build:
+      context: build
+      dockerfile: Dockerfile
+      args:
+        buildno: 1
+        gitcommithash: cdc3b19
+    ports:
+      - 6:80
+    volumes:
+      - ./build/scratch/etc/httpd/conf.d/vhost.conf:/etc/httpd/conf.d/vhost.conf.test
+      - ./build/scratch/root/.tcshrc:/root/.tcshrc
+      - ./build/scratch/root/.emacs:/root/.emacs
+      - ./build/scratch/var/www:/var/www
+    restart: always
+    healthcheck:
+      test: curl --fail http://localhost/cgi-bin/bnotes/bnotes || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+
+#volumes:
+#  dbdata:
+
+# docker-compose up -d --build
+
+# docker login -u kaloyanski 96f54244-9317-4c1e-8c4d-eeae820b28bd

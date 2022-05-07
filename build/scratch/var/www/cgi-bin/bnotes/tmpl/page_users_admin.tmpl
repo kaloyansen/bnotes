@@ -1,0 +1,75 @@
+<br />
+  <table width="95%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
+    <tr>
+      <td>
+
+      <form name="formindex" action="/cgi-bin/bnotes/badmin" method="POST">
+
+        <table width="100%" border="1" cellpadding="3" cellspacing="0" bgcolor="#FFFFFF">
+
+          <tr align="center" class="conntent">
+            <td><strong>№</strong></td>
+	    <td><strong>USER</strong></td>
+	    <td width="5%"><strong>LOCKED</strong></td>
+	    <td width="10%"><strong>ADMIN</strong></td>
+	    <td width="10%"><strong>CURRENCY</strong></td>
+	    <td width="20%"><strong>DATE</strong></td>
+	    <td width="20%"><strong>LAST LOGGED</strong></td>
+	    <td width="5%"><strong>SESSION</strong></td>
+	    <td width="5%"><strong>DELETE</strong></td>
+          </tr>
+
+<TMPL_LOOP NAME="LOOP_1">
+	  <tr align="center" class="conntent">
+	    <td align="center"><TMPL_VAR NAME=ID></td>
+	    <td><TMPL_VAR NAME=USER></td>
+            <td><input type="checkbox" name="<TMPL_VAR NAME=USER>" value=1 <TMPL_VAR NAME=LOCKED> /></td>
+            <td><input type="checkbox" name="<TMPL_VAR NAME=USER>" value=1 <TMPL_VAR NAME=ADMIN> /></td>
+            <td><input type="text" name="currency" value="<TMPL_VAR NAME=CURRENCY>" size="3" class="conntent" /></td>
+	    <td><TMPL_VAR NAME=CREATED></td>
+            <td><TMPL_VAR NAME=LOGGED></td>
+            <td><TMPL_VAR NAME=SESSIONS></td>
+	    <td><a href="/cgi-bin/bnotes/badmin?action=5&user=<TMPL_VAR NAME=USER>"><img src="images/delete.jpg" width="20" height="20" border="0"></a>
+          </tr>
+</TMPL_LOOP>
+
+	</table>
+
+      </form>
+
+<br /><br />
+
+<form name="chpass" action="/cgi-bin/bnotes/badmin" method="POST">
+  <table width="24%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#666666">
+    <tr>
+      <td>
+        <table width="100%" border="0" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
+          <tr align="left" >
+            <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)" class="titlewhite">
+              &nbsp;CHANGE USER PASSWORD
+            </td>
+          </tr>
+          <tr align="left">
+            <td height="40" class="conntent">&nbsp;&nbsp;<strong>User:</strong></td>
+            <td><input name="user" type="text" id="user" size="20" /></td>
+            <td height ="40" class="conntent">&nbsp;<strong>Password:</strong></td>
+            <td><input name="password" type="password" id="password" size="21" /></td>
+          </tr>
+
+          <tr align="right" >
+            <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
+              <input name="action" type="hidden" value="_chpass" />
+              <input name="Submit" type="submit" class="button" value="Change" />&nbsp;
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</form>
+
+    </td>
+  </tr>
+</table>            
+
+

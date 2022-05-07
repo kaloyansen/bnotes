@@ -1,0 +1,211 @@
+# -*- mode: csh -*-
+# code be Kaloyan KRASTEV
+# kaloyansen@gmail.com
+
+set moi = aliases
+# control the load of user level login dot files: .cshrc->login->aliases
+if ( ! $?LOAD_LOG ) setenv LOAD_LOG new:
+if ( $LOAD_LOG !~ "*$moi*" ) then
+    setenv LOAD_LOG $LOAD_LOG/$moi.init
+else
+    setenv LOAD_LOG $LOAD_LOG/$moi.exit
+endif
+
+
+alias a alias
+
+a ls ls\ --color=auto
+a ll ls\ -lh
+a l ls\ -lha
+a la ls\ -a
+a lo ls\ -larth
+a lss ls\ -larSh
+a ldir 'ls -lah|grep ^d'
+
+a mv 'mv -v'
+a mc mv
+a mb mv
+a rf 'rm -fvR'
+a rm 'rm -i'
+a .. 'cd ..'
+a ... '..;..'
+a .... '...;..'
+a ..... '....;..'
+a ...... '.....;..'
+a ....... '......;..'
+a ........ '.......;..'
+a ......... '........;..'
+a .......... '.........;..'
+a ........... '..........;..'
+a ............ '...........;..'
+a ............. '............;..'
+a wat \\watch\ -t\ -d\ -n\ 1\ ls\ -lt
+a les \\less\ -r
+a duhai /usr/bin/du\ --max-depth=1\ -h\ -a
+a df df\ -hT
+a h history
+a top top\ -c\ -s
+#overwritten
+a temperature 'sensors -u | grep temp1_input | awk '\''{print $2}'\'''
+#a root where\ ro
+a meteold "echo -n aujourdh\'hui:\ ; /usr/bin/finger grenoble@graph.no; echo -n demain:\ ; /usr/bin/finger grenoble+24@graph.no"
+a meteo "echo -n aujourdh\'hui:;/bin/bash ~/Myxa/mode/bash/graph.sh grenoble; echo -n demain:;/bin/bash ~/Myxa/mode/bash/graph.sh grenoble+24"
+
+a shell ps\ -p\ $$
+a ipaddress /usr/bin/curl\ -4\ icanhazip.com
+a swinfo lsb_release\ -a
+
+a vidiminiuer 'ffmpeg -i \!* -s 176x144 -vcodec h263 -r 5 -b 12200 -ab 12200 -ac 1 -ar 8000 \!:1.3gp'
+a videjoindre 'mencoder -oac copy -ovc copy -o' # whole part1 part2 ...
+a videjoindre 'mencoder -oac mp3lame -ovc copy -o' # whole.ext part.*.ext ...
+a joindrepdf 'gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=\!:1 \!:2 \!:3'
+a joindrepdf 'gs -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=\!:1 \!:2 \!:3'
+
+a mo "\mplayer -shuffle -zoom -fs -loop 0"
+a mp "\mplayer -shuffle -zoom -fs -loop 0"
+a mp3 "mp *.mp3"
+a mp3 "\mplayer -fs *.mp3"
+
+# la radio
+# a horizont \\mplayer\ -cache\ 321\ http://stream.bnr.bg:8002/horizont.mp3
+# a horizont horizont.csh
+a хоризонт /home/kalo/Myxa/mode/tcsh/horizont
+
+a mix 'killall kmix;\alsamixer --view=all'
+#a alsamixer where\ mix
+a verbe "chdir /home/kkrastev/soft/LeConjugueur;./Le\ Conjugueur&"
+a жербе "chdir /home/kkrastev/soft/LeConjugueur;./Le\ Conjugueur&"
+a gv okular
+a s source
+a yast /usr/bin/xdg-su -c\ /sbin/yast2
+a yats yast
+a cl "/usr/bin/rename \!:* '' *"
+a hydrogen 'hydrogen;rm -fvR autosave.h2song JackEngineProfiling.log Timing* generate_timings'
+a downloadsite wget\ --mirror\ -p\ --convert-links\ -P\ .
+
+########################## find ######################################################
+a inoderm "/usr/bin/find . -inum \!* -exec rm -i {} \;"
+a countLinesInFilesWithExtention '/usr/bin/find . -name "*.\!:1" | xargs wc -l | sort -n'
+a countLinesInPythonFiles countLinesInFilesWithExtention\ py
+a countLinesInPhpFiles countLinesInFilesWithExtention\ php
+a countLinesInJavaFiles countLinesInFilesWithExtention\ java
+a countLinesInJavascriptFiles countLinesInFilesWithExtention\ js
+a countLinesInHtmlFiles countLinesInFilesWithExtention\ html
+a combien 'ls -1 | wc -l'
+a combien 'find ./ -type f | wc -l'
+a findinpysrc "/usr/bin/find . -name '*.py' -not -path './venv/*' -exec egrep '\!*' {} /dev/null \;" # kaloyansen@gmail.com
+a findinphpsrc "/usr/bin/find . -name '*.php' -not -path './venv/*' -exec egrep '\!*' {} /dev/null \;" # kaloyansen@gmail.com
+a findtext "/usr/bin/find . -exec egrep '\!*' {} /dev/null \;" #erco@3dsite.com
+a findbig "/usr/bin/find . -type f -exec ls -s {} \; | sort -n -r | head -22"
+a findbig "/usr/bin/find . -type f -not -path './.svn/*' -exec ls -s {} \; | sort -n -r | head -22"
+a findbig "/usr/bin/find . -type f -not -path './proc/*' -not -path './.svn/*' -exec ls -s {} \; | sort -n -r | head -22"
+a fin "/usr/bin/find . -name \*\!:*\* |grep -v .svn |grep -v Permission"
+# delete file by inode number: find . -inum [inode-number] -exec rm -i {} \;
+a rmbyinode 'find . -inum \!:1 -exec rm -i {} \;' # delete file by inode number:
+
+
+
+# a xva "/usr/bin/xv *.jpg"
+# a yo ~/Myxa/mode/py/yo.py
+a p /usr/bin/env\ python
+a noomot ~/Myxa/mode/py/noomot.py
+a mountusb /bin/mount\ /dev/sdb1\ /home/kalo/usb.dev.sdb1
+
+#mysql
+a mysqlroot 'mysqlcheck -uroot -ptarantula --all-databases; mysql -uroot -ptarantula --prompt="\u@\h[\d]>\_"'
+a mysqlfree 'mysqlcheck -ufree -piAmFree --all-databases; mysql -ufree -piAmFree freedom --prompt="\u@\h[\d]>\_"'
+a mysqlmorla 'mysqlcheck -umorla -pmrdbpw1 --all-databases; mysql -umorla -pmrdbpw1 morla --prompt="\u@\h[\d]>\_"'
+a mysqldesy 'mysql -A -ucaliceon -pDelice.1 -hflccaldb01.desy.de calice --prompt="\u@\h[\d]>\_"'
+
+
+#afs
+a _afsshow fs\ sa\ \!:1\ system:anyuser\ read  # alow acces to direcectory on afs
+a _afshide fs\ sa\ \!:1\ system:anyuser\ none  # hide direcectory on afs
+a _afslist fs\ la\ \!:1 # show current permissions
+
+#make
+#a 3make $home/Myxa/mode/tcsh/3make.csh
+#a nake $home/Myxa/mode/tcsh/3make.csh
+a nake $home/Myxa/mode/tcsh/nake.csh
+a samke $home/Myxa/mode/tcsh/smake.csh
+a 5make $home/Myxa/mode/tcsh/5make.csh
+a remake $home/Myxa/mode/tcsh/remake.csh
+
+#ARCHIVE
+a zip \\zip\ -vr\ \!:1.zip\ \!:1
+a zip0 \\zip\ -v0r\ \!:1.zip\ \!:1
+a targz \\tar\ -pczvf\ \!:1.tar.gz\ \!:1
+a untargz \\tar\ -xvzf\ \!:1
+a optpic convert\ -verbose\ -scale\ 1234
+a optpicmul 'many -i jpg -e "convert -verbose -scale 1234" -o xyu -c'
+
+
+#SECURE SHELL
+a in2 "set echo;ssh -X kaloyan@isnpx0018.in2p3.fr;unset echo"
+a inu "set echo;ssh -Y kaloyan@lpsc-ui.in2p3.fr;unset echo"
+a wgs "set echo;ssh -X kaloyan@h1wgs.desy.de;unset echo"
+a koz "set echo;ssh -X kaloyan@h1kozloduy;unset echo"
+a in327 "set echo;ssh -X kkrastev@ccali27.in2p3.fr;unset echo"
+a in32 "set echo;ssh -X kkrastev@ccalisl432.in2p3.fr;unset echo"
+#a in3 "set echo;ssh -Y kkrastev@ccali.in2p3.fr;unset echo"
+
+set mfs = morla@www.freeshell.de
+set sfs = root@142.93.171.130
+set mfroot = $mfs":"
+set sfroot = $sfs":"
+set linroot = /home/m/morla
+a morla "set echo;ssh $mfs;unset echo"
+a sammy "set echo;ssh $sfs;unset echo"
+a fsconnectasmorla /usr/bin/sshfs -o uid=1000 -o gid=100 $mfroot$linroot $linroot
+a fsconnectassammy /usr/bin/sshfs -o uid=0 -o gid=0 $sfroot/ /sammy
+a houl "set echo;ssh lehoul@freeshell.de;unset echo"
+a trakalo "set echo;ssh trakalo@freeshell.de;unset echo"
+a simage "rsync -v -t \!:1/*.jpg lehoul@freeshell.de:/home/l/lehoul/public_html/img/\!:1"
+
+
+
+#other
+a out dcop\ kdesktop\ KDesktopIface\ logout
+a dic /usr/local/bin/cbedic
+a xl /usr/bin/xlock\ -mode\ random
+a ganga /afs/cern.ch/sw/ganga/install/5.1.2/bin/ganga
+#a ganga /afs/cern.ch/sw/ganga/install/5.4.3/bin/ganga
+a setup_LCG source\ ~/Myxa/ilc/setup_LCG.csh
+a ccvssh /sps/ilc/kkrastev/ccvssh-0.9.1-mod/prefix/bin/ccvssh
+a jack source\ /home/kkrastev/Myxa/mode/tcsh/jack.csh
+a beamer "xrandr --output VGA-0 --auto"
+
+a apacherrorlog sudo\ /usr/bin/cat\ /var/log/apache2/error_log
+a apachestatuswatch /usr/bin/watch\ /sbin/apachectl\ status
+
+#a compile "/usr/bin/g++ -I`root-config --incdir` `root-config --glibs` \!:1 -o $home/`uname -i`/bin/\!:1:r:t"
+a yast2 sudo\ -uroot\ /sbin/yast2
+a s2ram sudo\ -uroot\ /usr/sbin/s2ram
+a x $home/Myxa/mode/tcsh/xterm.csh
+a ldd ldd\ -r
+a restartplasma "kquitapp5 plasmashell && kstart5 plasmashell"
+
+# GIT
+a gitcommitall /usr/bin/git commit -am \'auto-commit by Kaloyan KRASTEV\'
+a push /usr/bin/git push
+a pull /usr/bin/git pull
+a pp "echo -n 'pull ';/usr/bin/git pull;echo -n 'push ';/usr/bin/git push"
+a status /usr/bin/git status
+
+
+# date
+a dateoonly "/usr/bin/date +'%y-%m-%d'"
+a date "/usr/bin/date +'%y-%m-%d %H:%M:%S'"
+a secondsince1970 "/usr/bin/date +'%s'"
+
+# cmd
+a beepcmd
+a cwdcmd 'echo -n \\033[0\;32m'
+a jobcmd
+a periodic
+a postcmd 'if ( $status ) echo -n \\033[0\;36m'
+a precmd 'if ( $status ) echo -n \\033[0\;33m'
+
+a off synclient\ touchpadoff=\!:1
+
+set prompt = "%n@%B%M%b:%//"

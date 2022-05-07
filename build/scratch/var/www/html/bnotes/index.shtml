@@ -1,0 +1,5 @@
+<head>
+<body>
+<!--#include virtual="/cgi-bin/bnotes/bnotes?action=about"-->
+</body>
+</head>

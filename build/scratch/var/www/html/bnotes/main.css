@@ -1,0 +1,49 @@
+.line {
+        background-color: #FF9900;
+}
+.conntent {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 9px;
+        color: #333333;
+}
+a {
+        font-size: 10px;
+        color: #009900;
+}
+
+.button
+{
+    BORDER-RIGHT: #cecece 1px solid;
+    PADDING-RIGHT: 2px;
+    BORDER-TOP: #efefef 1px solid;
+    PADDING-LEFT: 2px;
+    FONT-SIZE: 9px;
+    BACKGROUND: url(images/butbg.gif) #eeeeee;
+    PADDING-BOTTOM: 2px;
+    TEXT-TRANSFORM: capitalize;
+    BORDER-LEFT: #efefef 1px solid;
+    PADDING-TOP: 2px;
+    BORDER-BOTTOM: #cecece 1px solid;
+    FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif;
+    HEIGHT: 21px;
+    WIDTH: 100px
+}
+.titlewhite {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 9px;
+        font-weight: bold;
+        color: #FFFFFF;
+}
+.maintitle {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #339900;
+
+}
+.Title {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 12px;
+}
+

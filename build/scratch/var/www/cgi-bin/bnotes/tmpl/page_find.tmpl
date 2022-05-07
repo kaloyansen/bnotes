@@ -1,0 +1,34 @@
+<div align="left"><br>            
+  <table width="90%" border="0" cellspacing="0" cellpadding="1">
+    <tr> 
+      <td align="left">
+      <font face="Arial" size="3">&nbsp;
+      <i>Currency found matching your search criteria <strong><TMPL_VAR NAME=STRFIND></strong>:</i>
+      </font><br />
+      </td>
+    </tr>
+
+<TMPL_LOOP NAME="LOOP_1">
+    <tr>
+      <td>
+          <br />
+	  <img src="/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE>/<TMPL_VAR NAME=COUNTRY_CODE>.jpg" height="40" align="absmiddle" />&nbsp;
+          <a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_COUNTRIES>&amp;cid=<TMPL_VAR NAME=BCODEVAL>" 
+		class="maintitle"><TMPL_VAR NAME=BCODEVAL> - <TMPL_VAR NAME=COUNTRY></a> 
+          <p class="conntent">
+          <strong>CURRENCY:</strong>&nbsp;<TMPL_VAR NAME=CURRENCY>,&nbsp;
+          <strong>COINS:</strong>&nbsp;<TMPL_VAR NAME=COINNAME>,&nbsp;
+          <strong>ISSUING BANK:</strong>&nbsp;<TMPL_VAR NAME=EBANKNAME>
+	  <br /><TMPL_VAR NAME=MINFO>
+          </p>
+      </td>
+    </tr>
+</TMPL_LOOP>
+
+  </table>              
+
+<br /><br />
+
+<span class="maintitle"> </span>
+
+</div>

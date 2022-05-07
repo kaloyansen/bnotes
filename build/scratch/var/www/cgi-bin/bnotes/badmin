@@ -1,0 +1,274 @@
+#!/usr/bin/perl
+#
+# badmin: A PERL CGI script to administrate BSE banknotes system
+# Author: Hristo Grigorov <hgrigorov@gmail.com>
+# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
+
+use strict; 
+use warnings;
+use CGI;
+use DBH;
+use Socket;
+use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
+use CGI::Session qw/-ip-match/;
+use HTML::Template;
+
+my $SESSION_EXPIRATION = '+10m';
+#
+my $ACTION_LOGIN = "_login";
+my $ACTION_LOGOUT = "_logout";
+my $ACTION_DBUPDATE = "_dbupdate";
+my $ACTION_FUPDATE = "_flupdate";
+my $ACTION_USERS = "_users";
+my $ACTION_PRODUCT = "_info";
+my $ACTION_CHPASS = "_chpass";
+
+my $ACTION_DBUPDATE2 = '11';
+my $ACTION_FUPDATE2 = 12;
+
+
+my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top_admin.tmpl');
+my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login_admin.tmpl');
+my $PAGE_LOGOUT = HTML::Template->new(filename => 'tmpl/page_logout.tmpl');
+my $PAGE_DBUPDATE = HTML::Template->new(filename => 'tmpl/page_dbupdate.tmpl');
+my $PAGE_FUPDATE = HTML::Template->new(filename => 'tmpl/page_fupdate.tmpl');
+my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom_admin.tmpl');
+my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg_admin.tmpl');
+my $PAGE_PRODUCT = HTML::Template->new(filename => 'tmpl/page_product_admin.tmpl');
+my $PAGE_USERS = HTML::Template->new(filename => 'tmpl/page_users_admin.tmpl');
+
+
+################################################################################
+# MAIN FUNCTION                                                                
+################################################################################
+
+# connect to database
+DBH::db_connect();
+
+# Limit upload to 20MB
+$CGI::POST_MAX = 1024 * 20000;
+
+my $cgi = new CGI;
+#my $session = new CGI::Session("serializer:freezethaw", $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
+my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
+#my $cookie = $cgi->cookie(CGISESSID => $session->id );
+my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
+
+print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
+
+# import cgi variables
+my $action = $cgi->param('action');
+$action = $action ? $action : $ACTION_USERS;
+
+if ($action !~ m/$ACTION_LOGIN/ && !init_session()) {
+    do_page_top();
+    &do_page_msg("ACCESS DENIED", "INVALID NAME, PASSWORD OR ACCESS LEVEL!");
+    $session->delete();
+    exit 0;
+}
+
+# make sure user gets the login page if unauthrozied
+if (!$session->param("~logged-in")) {
+    $session->delete();
+    $action = $ACTION_LOGIN;
+}
+
+# output top page
+do_page_top();
+
+# handle login action
+print $PAGE_LOGIN->output  if ($action =~ m/$ACTION_LOGIN/);
+
+# handle logout action
+if ($action =~ m/$ACTION_LOGOUT/) {
+    $session->delete();
+    print $PAGE_LOGOUT->output;
+}
+
+# handle db update action
+print $PAGE_DBUPDATE->output if ($action =~ m/$ACTION_DBUPDATE/);
+
+# handle file update action
+print $PAGE_FUPDATE->output if ($action =~ m/$ACTION_FUPDATE/);
+
+do_dbupdate() if ($action =~ m/$ACTION_DBUPDATE2/);
+
+# handle product action
+do_page_product() if ($action =~ m/$ACTION_PRODUCT/);
+
+# handle product action
+do_page_users() if ($action =~ m/$ACTION_USERS/);
+
+do_chpass()  if ($action =~ m/$ACTION_CHPASS/);
+
+# output bottom page
+do_page_bottom();
+
+# disconnect from database
+DBH::db_disconnect();
+
+exit 1;
+
+
+################################################################################
+# UTILITY FUNCTIONS
+################################################################################
+
+sub init_session {
+
+    if ($session->param("~logged-in")) {
+        return 1;  # if logged in, don't bother going further
+    }
+
+    my $user = $cgi->param('user') or return 1;
+    my $password = $cgi->param('password') or return 1;
+
+    # if we came this far, user did submit the login form
+    # so let's try to load his/her profile if name/psswds match
+    if (DBH::auth_user($user, $password)) {
+        $session->expire($SESSION_EXPIRATION);
+        $session->param("~user", $user);
+        $session->param("~logged-in", 1);
+        return 1;
+    }
+
+    return 0;
+}
+
+sub auth_userr($$) {
+
+    my ($user, $password) = @_;
+
+    my $result = DBH::db_select_row("SELECT * FROM USERS WHERE USER = \'$user\'");	
+
+    my $authorized = DBH::db_select_array("SELECT COUNT(*) FROM USERS WHERE USER = \'$user\' AND PASSWORD = MD5(\'$password\')");
+
+    if ( ($authorized) && ($result->{ADMIN} == 1) ) {
+        #print STDERR "User $user authorized with password $password\n";
+        return 1;
+    } else {
+        #print STDERR "User $user NOT authorized with password $password\n";
+        return 0;
+    }
+}
+
+sub do_page_top {
+
+    $PAGE_TOP->param(ACTION_LOGOUT => $ACTION_LOGOUT);
+    $PAGE_TOP->param(ACTION_DBUPDATE => $ACTION_DBUPDATE);
+    $PAGE_TOP->param(ACTION_FUPDATE => $ACTION_FUPDATE);
+    $PAGE_TOP->param(ACTION_USERS => $ACTION_USERS);
+    $PAGE_TOP->param(ACTION_PRODUCT => $ACTION_PRODUCT);
+
+    print $PAGE_TOP->output;
+}
+
+sub do_page_bottom {
+
+    print $PAGE_BOTTOM->output;
+
+}
+
+sub do_page_msg($$) {
+
+    my ($title, $msg) = @_;
+
+    $PAGE_MSG->param(TITLE => $title);
+    $PAGE_MSG->param(MESSAGE => $msg);
+
+    print $PAGE_MSG->output;
+
+}
+
+sub do_dbupdate {
+
+    my $db_user = $cgi->param('user');
+    my $db_passwd = $cgi->param('password');
+    my $db_file = $cgi->param('sqlfile');
+
+    my $upload_dir = "/tmp";
+    my $upload_filehandle = $cgi->upload('sqlfile');
+
+    # dump stream to file
+    my $update_file = "$upload_dir/$db_file";
+    open (UPLOADFILE, ">$update_file") or die "$!";
+    binmode UPLOADFILE;
+    while (<$upload_filehandle>) { print UPLOADFILE; }
+    close UPLOADFILE;
+
+    # call mysql to import data
+    system("/usr/bin/mysql --user=$db_user --password=$db_passwd CURRENCY < $update_file");
+
+    if ($? != 0)  {
+        do_page_msg("UPDATE", "ERROR ($?) WHILE UPDATING!");
+    }
+
+    unlink("$update_file");
+
+    do_page_msg("UPDATE", "DATA SUCCESSFULLY UPDATED!");
+}
+
+sub do_page_product {
+
+    my $result = DBH::db_select_row("SELECT * FROM PRODUCT");
+    my $result2 = DBH::db_select("SELECT * FROM USERS");
+
+    $PAGE_PRODUCT->param(PRODVER => $result->{PRODVER});
+    $PAGE_PRODUCT->param(DBVER => $result->{DBVER});
+    $PAGE_PRODUCT->param(DBDATE => $result->{DBDATE});
+    $PAGE_PRODUCT->param(IMGVER => $result->{IMGVER});
+    $PAGE_PRODUCT->param(IMGDATE => $result->{IMGDATE});
+    $PAGE_PRODUCT->param(LICNAME => $result->{LICNAME});
+    $PAGE_PRODUCT->param(LICUSR => $result->{LICUSR});
+    $PAGE_PRODUCT->param(LICUSED => scalar(@$result2));
+    $PAGE_PRODUCT->param(LICDATE => $result->{LICDATE});
+
+    print $PAGE_PRODUCT->output;
+
+}
+
+sub do_page_users {
+
+    my $results1 = DBH::db_select("SELECT * FROM USERS");
+
+    my @loop1;
+    foreach my $result ( @$results1 ) {
+
+        my %row = (
+            ID       => $result->{ID},
+            USER     => $result->{USER},
+            LOCKED   => $result->{LOCKED} ? "checked" : "",
+            ADMIN    => $result->{ADMIN} ? "checked" : "",
+            CURRENCY => $result->{CURRENCY},
+            CREATED  => $result->{CREATED},
+            LOGGED   => $result->{LOGGED},
+            SESSIONS => $result->{SESSIONS}
+            );
+
+        push(@loop1, \%row);
+    }
+
+    $PAGE_USERS->param(LOOP_1 => \@loop1);
+
+    print $PAGE_USERS->output;
+
+}
+
+
+sub do_save_users {
+
+    my @items = param('hristo');
+    foreach my $item (@items) {
+    }	
+
+}
+
+sub do_chpass {
+
+    my $user = $cgi->param('user');
+    my $password = $cgi->param('password');
+
+    DBH::db_update("UPDATE USERS SET PASSWORD = MD5(\'$password\') WHERE USER LIKE \'$user\'");
+
+    do_page_msg("CHANGE USER PASSWORD", "USER $user PASSWORD IS CHANGED");
+}
