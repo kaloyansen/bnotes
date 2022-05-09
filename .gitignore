@@ -5,4 +5,4 @@ dbdata/
 error.log
 .db
 .db.json
-docker-compose.yaml
+production.env

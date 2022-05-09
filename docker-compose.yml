@@ -14,11 +14,13 @@ services:
       - ./build/scratch/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
     restart: always
     command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_USER: bseadmin
-      MYSQL_DATABASE: CURRENCY
-      MYSQL_PASSWORD: qaz123wsx
+    env_file:
+      - production.env
+#    environment:
+#      MYSQL_ROOT_PASSWORD: rootpassword
+#      MYSQL_USER: bseadmin
+#      MYSQL_DATABASE: CURRENCY
+#      MYSQL_PASSWORD: qaz123wsx
     healthcheck:
       test: cat /docker-entrypoint-initdb.d/0_init.sql || exit 1
       interval: 30s
