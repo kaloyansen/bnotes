@@ -5,13 +5,12 @@ services:
     container_name: database_container
     volumes:
       - type: bind
-        # sudo chown -vR $USER build/scratch/var/lib/mysql # may be needed
-        #source: ./build/scratch/var/lib/mysql
+        # sudo chown -vR $USER dbdata # may be needed
         source: ./dbdata
         target: /var/lib/mysql
         read_only: false
-#     - ./build/scratch/var/lib/mysql:/var/lib/mysql
-      - ./build/scratch/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
+#     - ./build/src/var/lib/mysql:/var/lib/mysql
+      - ./build/src/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     env_file:
@@ -59,10 +58,10 @@ services:
     ports:
       - 6:80
     volumes:
-      - ./build/scratch/etc/httpd/conf.d/vhost.conf:/etc/httpd/conf.d/vhost.conf.test
-      - ./build/scratch/root/.tcshrc:/root/.tcshrc
-      - ./build/scratch/root/.emacs:/root/.emacs
-      - ./build/scratch/var/www:/var/www
+      - ./build/src/etc/httpd/conf.d/vhost.conf:/etc/httpd/conf.d/vhost.conf.test
+      - ./build/src/root/.tcshrc:/root/.tcshrc
+      - ./build/src/root/.emacs:/root/.emacs
+      - ./build/src/var/www:/var/www
     restart: always
     healthcheck:
       test: curl --fail http://localhost/cgi-bin/bnotes/bnotes || exit 1

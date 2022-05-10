@@ -31,8 +31,8 @@ RUN yum --enablerepo=remi-php73 -y install php php-bcmath php-cli php-common php
 # RUN sed -E -i -e 's/DirectoryIndex (.*)$/DirectoryIndex bnotes \1/g' /etc/httpd/conf/httpd.conf
 
 ##################### envirenment has been gone to docker-compose.yml
-# ADD ./scratch/root/.tcshrc /root/.tcshrc
-# ADD ./scratch/root/.emacs /root/.emacs
+# ADD ./src/root/.tcshrc /root/.tcshrc
+# ADD ./src/root/.emacs /root/.emacs
 
 
 #################### start apache
