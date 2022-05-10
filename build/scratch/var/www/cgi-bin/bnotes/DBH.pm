@@ -16,6 +16,7 @@ use constant CREDIT_DATA => '/var/www/.db';
 
 my $debuglevel = 4;
 my $DBH = undef; 
+my $SESSION_EXPIRATION = '+10m';
 
 sub db_connect {
 
@@ -152,6 +153,28 @@ sub auth_user($$) {
     }
 }
 
+sub init_session($$) {
+
+    my ($session, $cgi) = @_;
+    
+    if ($session->param("~logged-in")) {
+        return 1;  # if logged in, don't bother going further
+    }
+
+    my $user = $cgi->param('user') or return 1;
+    my $password = $cgi->param('password') or return 1;
+
+    # if we came this far, user did submit the login form
+    # so let's try to load his/her profile if name/psswds match
+    if (auth_user($user, $password)) {
+        $session->expire($SESSION_EXPIRATION);
+        $session->param("~user", $user);
+        $session->param("~logged-in", 1);
+        return 1;
+    }
+
+    return 0;
+}
 
 
 1;

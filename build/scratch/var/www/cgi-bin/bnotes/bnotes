@@ -9,6 +9,7 @@ use warnings;
 use CGI;
 use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
+use CGI::Session qw/-ip-match/;
 use HTML::Template;
 
 #
@@ -55,7 +56,13 @@ DBH::db_connect();
 
 # do some CGI stuff
 my $cgi = new CGI;
-print $cgi->header(-charset => 'utf-8');
+my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
+#my $cookie = $cgi->cookie(CGISESSID => $session->id );
+my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
+
+#print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
+print $session->header();
+# print $cgi->header(-charset => 'utf-8');
 
 # cgi variables
 my $fbid;
@@ -72,12 +79,22 @@ $pageid = $cgi->param('pageid');
 $strfind = $cgi->param('textfield');
 my $action = $cgi->param('action');
 
-$action = $action ? $action : $ACTION_INFO;
-$cid = $cid ? $cid : 55;
-$bid = $bid ? $bid : 55;
-$infoid = $infoid ? $infoid : 55;
+#$action = $action ? $action : $ACTION_INFO;
+#$cid = $cid ? $cid : 55;
+#$bid = $bid ? $bid : 55;
+#$infoid = $infoid ? $infoid : 55;
 
 #$action = $action ? $action : $ACTION_ABOUT;
+
+my $user = $session->param("~user") ? $session->param("~user") : 'guest';
+
+if (DBH::init_session($session, $cgi) > 0) {
+    $user = $session->param("~user");
+    $user = $user ? $user : 'invited';
+}
+
+
+
 
 # output top page 
 do_page_top() if (needs_top_page());
@@ -85,6 +102,7 @@ do_page_top_small() if (needs_page_top_small());
 
 # handle login action
 #do_page_login() if ($action =~ m/$ACTION_LOGIN/);
+do_page_login() if ($action eq $ACTION_LOGIN);
 
 # handle logout action
 #do_page_logout() if ($action =~ m/$ACTION_LOGOUT/);
@@ -123,7 +141,7 @@ do_page_preview() if ($action eq $ACTION_PREVIEW);
 do_page_preview_fake() if ($action eq $ACTION_PREVIEW_FAKE);
 
 # output bottom page
-do_page_bottom() if (needs_page_bottom());
+do_page_bottom();# if (needs_page_bottom());
 
 # disconnect from database
 DBH::db_disconnect();
@@ -151,6 +169,8 @@ sub do_page_bottom {
     $PAGE_BOTTOM->param(ACTION_ABOUT => $ACTION_ABOUT);
     $PAGE_BOTTOM->param(ACTION_LIBRARY => $ACTION_LIBRARY);
     $PAGE_BOTTOM->param(ACTION_NEWS => $ACTION_NEWS);
+    $PAGE_BOTTOM->param(ACTION_LOGIN => $ACTION_LOGIN);
+    $PAGE_BOTTOM->param(ACTION_LABEL => $user);
 
     print $PAGE_BOTTOM->output;
 
@@ -186,7 +206,8 @@ sub do_page_top_small {
 sub do_page_login {
 
     $PAGE_LOGIN->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
-    $PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
+    #$PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
+    $PAGE_LOGIN->param(FPWEMAIL => "kaloyansen\@gmail.com");
     print $PAGE_LOGIN->output;
 
 }
