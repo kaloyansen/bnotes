@@ -9,8 +9,8 @@ services:
         source: ./dbdata
         target: /var/lib/mysql
         read_only: false
-#     - ./build/src/var/lib/mysql:/var/lib/mysql
-      - ./build/src/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
+#     - ./kalo/src/var/lib/mysql:/var/lib/mysql
+      - ./kalo/src/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     env_file:
@@ -50,7 +50,7 @@ services:
     image: kalimage:6.6.6
     container_name: contalo
     build:
-      context: build
+      context: kalo
       dockerfile: Dockerfile
       args:
         buildno: 1
@@ -58,10 +58,10 @@ services:
     ports:
       - 6:80
     volumes:
-      - ./build/src/etc/httpd/conf.d/vhost.conf:/etc/httpd/conf.d/vhost.conf.test
-      - ./build/src/root/.tcshrc:/root/.tcshrc
-      - ./build/src/root/.emacs:/root/.emacs
-      - ./build/src/var/www:/var/www
+      - ./kalo/src/etc/httpd/conf.d/vhost.conf:/etc/httpd/conf.d/vhost.conf.test
+      - ./kalo/src/root/.tcshrc:/root/.tcshrc
+      - ./kalo/src/root/.emacs:/root/.emacs
+      - ./kalo/src/var/www:/var/www
     restart: always
     healthcheck:
       test: curl --fail http://localhost/cgi-bin/bnotes/bnotes || exit 1
