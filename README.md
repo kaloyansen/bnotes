@@ -1,1 +1,1 @@
-# bnotes
+# Copyright (c) 2011-2022 Busoft Engineering. All right reserved.

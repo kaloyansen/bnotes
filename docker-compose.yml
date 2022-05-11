@@ -5,21 +5,15 @@ services:
     container_name: database_container
     volumes:
       - type: bind
-        # sudo chown -vR $USER dbdata # may be needed
+        # sudo rm -fvR dbdata/* or sudo chown -vR $USER dbdata # may be needed before docker-compose up
         source: ./dbdata
         target: /var/lib/mysql
         read_only: false
-#     - ./kalo/src/var/lib/mysql:/var/lib/mysql
       - ./kalo/src/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     env_file:
       - production.env
-#    environment:
-#      MYSQL_ROOT_PASSWORD: rootpassword
-#      MYSQL_USER: bseadmin
-#      MYSQL_DATABASE: CURRENCY
-#      MYSQL_PASSWORD: qaz123wsx
     healthcheck:
       test: cat /docker-entrypoint-initdb.d/0_init.sql || exit 1
       interval: 30s
@@ -47,8 +41,8 @@ services:
     restart: always
 
   kalo:
-    image: kalimage:6.6.6
-    container_name: contalo
+    image: kalo:6.6.6
+    container_name: kalo_container
     build:
       context: kalo
       dockerfile: Dockerfile

@@ -60,7 +60,8 @@ print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
 my $action = $cgi->param('action');
 $action = $action ? $action : $ACTION_USERS;
 
-if ($action !~ m/$ACTION_LOGIN/ && !DBH::init_session($session, $cgi)) {
+#if ($action !~ m/$ACTION_LOGIN/ && !DBH::init_session($session, $cgi)) {
+if ($action !~ m/$ACTION_LOGIN/ && DBH::init_session($session, $cgi) != 1) {
     do_page_top();
     &do_page_msg("ACCESS DENIED", "INVALID NAME, PASSWORD OR ACCESS LEVEL!");
     $session->delete();
