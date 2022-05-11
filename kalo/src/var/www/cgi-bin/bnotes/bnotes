@@ -4,10 +4,6 @@
 # Author: Hristo Grigorov <hgrigorov@gmail.com>
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
 # ----------------------------------------------------------------------------------------
-# BNOTES: User access control for BSE banknotes system
-# Author: Kaloyan Krastev <kaloyansen@gmail.com>
-# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
 use strict; 
 use warnings;
 use CGI;
@@ -15,7 +11,11 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
-
+# ----------------------------------------------------------------------------------------
+# BNOTES: User access control for BSE banknotes system
+# Author: Kaloyan Krastev <kaloyansen@gmail.com>
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
+# ----------------------------------------------------------------------------------------
 my %code_val;
 $code_val{'BGN'} = 2 ** 1;
 $code_val{'CAD'} = 2 ** 2;
@@ -27,8 +27,7 @@ $code_val{'EUR'} = 2 ** 7;
 $code_val{'GBP'} = 2 ** 8;
 $code_val{'NOK'} = 2 ** 9;
 $code_val{'RUB'} = 2 ** 10;
-
-#
+# ----------------------------------------------------------------------------------------
 my $ACTION_LOGIN = "login";
 my $ACTION_LOGOUT = "logout";
 my $ACTION_ABOUT = "about";
