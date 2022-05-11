@@ -1,19 +1,19 @@
 package DBH;
-
+# ----------------------------------------------------------------------------------------
 # DBH: BSE banknotes system data base access
 # Author: Hristo Grigorov <hgrigorov@gmail.com>
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-
+# ----------------------------------------------------------------------------------------
 use strict; 
 use warnings;
 use DBI;
 use Data::Dumper;
 use constant DATABASE_CREDIT_FILE => '/var/www/.db';
-
+# ----------------------------------------------------------------------------------------
 # Credentials are loaded from DATABASE_CREDIT_FILE in a secure database connexion approach 
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>
-# Copyright (c) 2021-2022 Busoft Engineering. All right reserved.
-
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
+# ----------------------------------------------------------------------------------------
 my $debuglevel = 4;
 my $DBH = undef; 
 my $SESSION_EXPIRATION = '+22m';

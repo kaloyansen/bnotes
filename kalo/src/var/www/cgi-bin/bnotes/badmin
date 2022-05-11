@@ -1,9 +1,13 @@
 #!/usr/bin/perl
-#
+# ----------------------------------------------------------------------------------------
 # badmin: A PERL CGI script to administrate BSE banknotes system
 # Author: Hristo Grigorov <hgrigorov@gmail.com>
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-
+# ----------------------------------------------------------------------------------------
+# badmin: Create, modify and delete user
+# Author: Kaloyan Krastev <kaloyansen@gmail.com>
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
+# ----------------------------------------------------------------------------------------
 use strict; 
 use warnings;
 use CGI;

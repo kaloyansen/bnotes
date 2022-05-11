@@ -1,0 +1,120 @@
+#!/usr/bin/perl
+#-----------------------------------------
+# 
+# sql_get.pl - CGI application example
+# 
+#-----------------------------------------
+# include libraries
+require 5.6.0;
+use strict;
+use warnings;
+use CGI;
+use DBI;
+
+# declare some variables
+my ($q, $dbh, $sth, $query, $datasource, $user, $password, $error, $field, $result, $results);
+my (@datasources);
+
+# initiate CGI parser object
+$q = CGI->new;
+
+# begin the page
+print $q->header, $q->start_html('SQL Database Viewer'), $q->h2('SQL Database Viewer');
+# build a (safe) list of data sources
+foreach (DBI->available_drivers) {
+    eval {
+        foreach (DBI->data_sources($_)) {
+            push @datasources, $_;
+        }
+    };
+}
+
+
+my $db_driver= "mysql";
+my $db_host = 'db';
+my $db_database = 'morla';
+push @datasources, "DBI:$db_driver:database=$db_database;host=$db_host";
+
+
+# display the entry form
+print $q->start_form;
+print qq{<p>Choose a datasource:</p>\n};
+print $q->popup_menu(-name => 'datasource', 
+                     -values => \@datasources);
+
+print qq{<p>Specify username/password:</p>\n};
+print $q->textfield(-name => 'user',
+                    -size => 10);
+print $q->password_field(-name => 'password',
+                         -size => 10);
+
+print qq{<p>Enter a SELECT query:</p>\n};
+print $q->textarea(-name => 'query',
+                   -rows => '5',
+                   -cols => '40',
+                   -wrap => 'virtual');
+
+print $q->p, $q->submit;
+print $q->end_form;
+
+# get form variables
+$datasource = $q->param('datasource');
+$user = $q->param('user');
+$password = $q->param('password');
+$query = $q->param('query');
+
+# check form variables
+if ($query) {
+    $error = "Improper datasource specified" unless ($datasource =~ /^dbi/i);
+    $error = "Query should start with SELECT" unless ($query =~ /^select/i);
+}
+
+# if a query is specified and form variables are OK,
+if ($query and !$error) {
+    # connect to the database
+    $dbh = DBI->connect($datasource, $user, $password)
+        or $error = "Connection failed: $DBI::errstr";
+
+    # if the database connection worked, send the quer
+    unless ($error) {
+        $sth = $dbh->prepare($query)
+            or $error = "Query failed: $DBI::errstr";
+        $sth->execute or $error = "Query failed: $DBI::errstr";
+    }
+}
+
+# if any errors are present, display the error and exit
+if ($error) {
+    print $q->p("Error: $error"), $q->end_html and exit;
+}
+
+# if the query produced an output,
+if ($query and $sth->{NAME}) {
+    # start a data table
+    print qq{<table border="1">\n};
+    print qq{<tr>\n};
+    
+    # display the fields as table headers
+    foreach $field (@{$sth->{NAME}}) {
+        print qq{<th>$field</th>\n};
+    }
+    print qq{</tr>\n};
+
+    # display the results in a table
+    while ($results = $sth->fetchrow_arrayref) {
+        print qq{<tr>\n};
+        foreach $result (@$results) {
+            print qq{<td>$result</td>\n};
+        }
+        print qq{</tr>\n};
+    }
+    
+    # finish the data table
+    print qq{</table>\n};
+}
+
+# finish the page
+print $q->end_html;
+
+# disconnect from the database
+$dbh->disconnect if $dbh;

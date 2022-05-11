@@ -1,0 +1,96 @@
+#!/usr/bin/perl
+
+use CGI;
+use DBI;
+use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
+#use HTML::Template;
+
+$db_driver= "mysql";
+$db_host = 'db';
+$db_database = 'morla';
+$db_user = 'morla';
+$db_password = 'imrqEXtYXSn6BgQq';
+
+$q = new CGI;
+print $q->header;
+
+# if user name and password are assigned
+if( $q->param('pseudo') ne "" && $q->param('password') ne "" ) {
+    # yes. Let's see if they work
+    $db_user = $q->param('pseudo');
+    $db_password = $q->param('password');
+    print "conecting...";
+    $dsn = "DBI:$db_driver:database=$db_database;host=$db_host";
+    $dbh = DBI->connect($dsn, $db_user, $db_password);
+    print $dbh;
+}
+
+if( $q->param('pseudo') eq "" || $q->param('password') eq ""
+    || $dbh eq "" ) {
+    # the username and password are empty, or didn't work
+    # prompt for them...
+    print "<p>Enter the MySQL user name and password</p>\n";
+    print $q->start_form;
+    print "<table border=0>\n";
+    print "<tr>\n";
+    print "<td width=\"200\">\n";
+    print "MySQL user name:\n";
+    print "</td>\n";
+    print "<td>\n";
+    print $q->textfield('pseudo');
+    print "</td>\n";
+    print "</tr>\n";
+
+    print "<tr>\n";
+    print "<td width=\"200\">\n";
+    print "Password:\n";
+    print "</td>\n";
+    print "<td>\n";
+    print $q->textfield('password');
+    print "</td>\n";
+    print "</tr>\n";
+
+    print "<tr>\n";
+    print "<td width=\"200\">\n";
+    print $q->submit(-name=>'Action', -value=>'Login');
+    print "</td>\n";
+    print "<td>\n";
+    print "&nbsp";
+    print "</td>\n";
+    print "</tr>\n";
+
+    print "</table>\n";
+    print $q->end_form;
+
+    # and exit the CGI script
+    exit;
+}
+
+
+# else we have logged in to MySQL
+# run the SQL command
+$sql = "SELECT id, pseudo, password, parent FROM membre";
+$sql = "$sql WHERE pseudo=$q->param('pseudo')";
+$sql = "$sql AND password=$q->param('password')";
+$sth = $dbh->prepare($sql);
+$sth->execute;
+
+# retrieve and output the result
+print "<p>The database contains the following:</p>\n";
+print "<table cols=3 border=1>\n";
+print "<tr>\n";
+print "<th>id</th>\n";
+print "<th>pseudo</th>\n";
+print "<th>password</th>\n";
+print "<th>parent</th>\n";
+print "</tr>";
+while(  my $ref = $sth->fetchrow_hashref() ) {
+    print "<tr>\n";
+    print "<td>", $ref->{'id'}, "</td>\n";
+    print "<td>", $ref->{'pseudo'}, "</td>\n";
+    print "<td>", $ref->{'password'}, "</td>\n";
+    print "<td>", $ref->{'parent'}, "</td>\n";
+    print "</tr>\n";
+}
+print "</table>\n";
+exit;
