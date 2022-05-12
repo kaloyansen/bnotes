@@ -1,22 +1,44 @@
 package DBH;
+
 # ----------------------------------------------------------------------------------------
-# DBH: BSE banknotes system data base access
+# DBH: BSE banknotes system database access
 # Author: Hristo Grigorov <hgrigorov@gmail.com>
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
 # ----------------------------------------------------------------------------------------
+
 use strict; 
 use warnings;
+use DateTime::Format::MySQL;
 use DBI;
 use Data::Dumper;
 use constant DATABASE_CREDIT_FILE => '/var/www/.db';
+
 # ----------------------------------------------------------------------------------------
-# Credentials are loaded from DATABASE_CREDIT_FILE in a secure database connexion approach 
+# Credentials are loaded from DATABASE_CREDIT_FILE
+# User access control is bit packed in the database under CURRENCY.USERS.ADMIN  
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
 # ----------------------------------------------------------------------------------------
+
+my %global_access_level_mask = ();
+# user access control level
+$global_access_level_mask{ADM} = 2 ** 0; # administrator can modify users and change their access level
+$global_access_level_mask{BGN} = 2 ** 1; # lev bulgarian read access
+$global_access_level_mask{CAD} = 2 ** 2; # dollar canadian read access
+$global_access_level_mask{CHF} = 2 ** 3; # ...
+$global_access_level_mask{DKK} = 2 ** 4; # ...
+$global_access_level_mask{USD} = 2 ** 5;
+$global_access_level_mask{TRY} = 2 ** 6;
+$global_access_level_mask{EUR} = 2 ** 7;
+$global_access_level_mask{GBP} = 2 ** 8;
+$global_access_level_mask{NOK} = 2 ** 9;
+$global_access_level_mask{RUB} = 2 ** 10;
+# ...
+# ...
+$global_access_level_mask{FOX} = 2 ** 15; # counterfeit banknotes/faux billets/фалшиви банкноти
+
 my $debuglevel = 4;
 my $DBH = undef; 
-my $SESSION_EXPIRATION = '+22m';
 
 sub database_credit_from($) {
 
@@ -57,8 +79,6 @@ sub db_connect {
     # this is needed to properly show cyrillic characters
     my $qhandle = $DBH->prepare("SET NAMES UTF8");
     $qhandle->execute();
-
-    #return $DBH;
 }
 
 sub db_disconnect {
@@ -74,56 +94,104 @@ sub db_disconnect {
 
 sub db_select($) {
 
-    return $DBH->selectall_arrayref(shift, { Slice => {} });
+    my $query = shift;
+    my $results = $DBH->selectall_arrayref($query, { Slice => {} });
 
-    #my $query = shift;
-
-    #print STDERR "QUERY: $query\n";
-
-    #my $results = $DBH->selectall_arrayref($query, { Slice => {} });
-
-    #return $results;
-    
+    return $results;    
 }
 
 sub db_select_array($) {
 
-    return $DBH->selectrow_array(shift);
-    #my $query = shift;
+    my $query = shift;
+    my $result = $DBH->selectrow_array($query);
 
-    #print STDERR "QUERY: $query\n";
-
-    #my $result = $DBH->selectrow_array($query);
-
-    #return $result;
+    return $result;
 }
 
 sub db_select_row($) {
 
-    #my $query = shift;
-
+    my $query = shift;
     #print STDERR "QUERY: $query\n";
-
-    #my $sth = $DBH->prepare($query);
-    my $sth = $DBH->prepare(shift);
+    my $sth = $DBH->prepare($query);
     $sth->execute();
 
-    #my $result = $sth->fetchrow_hashref();
-    return $sth->fetchrow_hashref();
+    my $result = $sth->fetchrow_hashref();
+    return $result;
+}
 
-    #return $result;
+sub db_insert($$) {
+
+    my ($user, $pass) = @_;
+    my $sql = "INSERT INTO USERS(USER, PASSWORD) VALUES(?, MD5(?))";
+
+    my $sth = $DBH->prepare($sql);
+    my $result = $sth->execute($user, $pass);
+    if ($result) {
+        DBH::db_update_column('CREATED', DBH::now(), $user); 
+    } else {
+        die $!;
+    }
+
+    $sth->finish();
+    return $result;
+}
+
+sub db_delete($) {
+
+    my $sql = "DELETE FROM USERS WHERE USER LIKE ?";
+
+    my $sth = $DBH->prepare($sql);
+    my $result = $sth->execute(shift);
+    if ($result) {
+        ;
+    } else {
+        die $!;
+    }
+
+    $sth->finish();
+    return $result;
+}
+
+sub db_update_column($$$) {
+
+    my ($column, $value, $user) = @_; 
+    my $sql = "UPDATE USERS SET $column = ? WHERE USER LIKE ?";
+
+    my $sth = $DBH->prepare($sql);
+    my $result = $sth->execute($value, $user);
+    if ($result) {
+        ;
+    } else {
+        return $!;
+    }
+
+    $sth->finish();
+    return $result;
 }
 
 sub db_update($) {
 
-    #my $query = shift;
-
-    #print STDERR "QUERY: $query\n";
-
-    #my $sth = $DBH->prepare($query);
     my $sth = $DBH->prepare(shift);
-    $sth->execute();
+    my $result = $sth->execute();
+    if ($result) {
+        ;
+    } else {
+        die $!;
+    }
+
     $sth->finish();
+    return $result;
+}
+
+sub level($) {
+
+    my $code = shift;
+    return $code eq 'all' ? %global_access_level_mask : $global_access_level_mask{$code};
+}
+
+sub now() {
+
+    return DateTime::Format::MySQL->format_datetime(DateTime->now);
 }
 
 sub auth_user($$) {
@@ -135,41 +203,38 @@ sub auth_user($$) {
     my $fine = DBH::db_select_array("SELECT COUNT(*) $from AND PASSWORD = MD5(\'$password\')");
 
     if ($fine) {
+        DBH::db_update_column('ACTIVE', 1, $user); 
+        DBH::db_update_column('LOGGED', DBH::now(), $user); 
         return $result->{ADMIN};
-        #if ( ($fine) && ($result->{ADMIN} == 1) ) {
-        #print STDERR "User $user authorized with password $password\n";
-        #return 1;
     } else {
-        #print STDER  R "User $user NOT authorized with password $password\n";
+        # print STDERR "User $user NOT authorized with password $password\n";
         return 0;
     }
 }
 
-sub init_session($$) {
+sub auth_superuser($$) {
 
-    my ($session, $cgi) = @_;
-    
-    if ($session->param("~logged-in")) {
-        return 1;  # if logged in, don't bother going further
-    }
+    my ($user, $password) = @_;
+    #return DBH::auth_user($user, $password) == 1 ? 1 : 0;
+    return (DBH::auth_user($user, $password) & DBH::access_code('ADM')) ? 1 : 0;
+}    
 
-    my $user = $cgi->param('user') or return 1;
-    my $password = $cgi->param('password') or return 1;
+sub auth_admin($$) {
 
-    # if we came this far, user did submit the login form
-    # so let's try to load his/her profile if name/psswds match
+    my ($user, $password) = @_;
+    my $from = "FROM USERS WHERE USER = \'$user\'";
+    my $result = DBH::db_select_row("SELECT * $from");  
+    my $fine = DBH::db_select_array("SELECT COUNT(*) $from AND PASSWORD = MD5(\'$password\')");
 
-    my $auth_user = auth_user($user, $password);
-#    if (auth_user($user, $password)) {
-    if ($auth_user > 0) {
-        $session->expire($SESSION_EXPIRATION);
-        $session->param("~user", $user);
-        $session->param("~access", $auth_user);
+    if ( ($fine) && ($result->{ADMIN} == 1) ) {
+        #print STDERR "User $user authorized with password $password\n";
         return 1;
+    } else {
+        #print STDERR "User $user NOT authorized with password $password\n";
+        return 0;
     }
-
-    return 0;
 }
+
 
 1;
 

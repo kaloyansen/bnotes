@@ -19,7 +19,7 @@ RUN rpm -Uvh http://rpms.remirepo.net/enterprise/remi-release-7.rpm
 
 ################# software
 RUN yum -y install httpd httpd-tools tcsh nano file perl perl-CGI perl-CGI-Session perl-DBI perl-DBD-MySQL perl-HTML-Template
-# perl-JSON perl-CGI-Application
+# perl-JSON perl-CGI-Application perl-Crypt-RC4 perl-DateTime-Format-MySQL
 
 # Install PHP
 # RUN yum -y install php php-mysqlnd php-pdo

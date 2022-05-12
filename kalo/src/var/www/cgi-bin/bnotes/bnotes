@@ -11,22 +11,11 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+use constant SESSION_EXPIRATION => '+123m';
 # ----------------------------------------------------------------------------------------
 # BNOTES: User access control for BSE banknotes system
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
-my %code_val;
-$code_val{'BGN'} = 2 ** 1;
-$code_val{'CAD'} = 2 ** 2;
-$code_val{'CHF'} = 2 ** 3;
-$code_val{'DKK'} = 2 ** 4;
-$code_val{'USD'} = 2 ** 5;
-$code_val{'TRY'} = 2 ** 6;
-$code_val{'EUR'} = 2 ** 7;
-$code_val{'GBP'} = 2 ** 8;
-$code_val{'NOK'} = 2 ** 9;
-$code_val{'RUB'} = 2 ** 10;
 # ----------------------------------------------------------------------------------------
 my $ACTION_LOGIN = "login";
 my $ACTION_LOGOUT = "logout";
@@ -73,7 +62,7 @@ DBH::db_connect();
 my $cgi = new CGI;
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
 #my $cookie = $cgi->cookie(CGISESSID => $session->id );
-my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
+#my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
 
 #print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
 print $session->header();
@@ -91,7 +80,7 @@ my $strfind = $cgi->param('textfield');
 my $action = $cgi->param('action');
 
 my $user = $session->param("~user") ? $session->param("~user") : 'guest';
-my $access = DBH::init_session($session, $cgi);
+my $access = init_session();
 #if (DBH::init_session($session, $cgi) > 0) {
 if ($access > 0) {
     $user = $session->param("~user");
@@ -99,19 +88,16 @@ if ($access > 0) {
 }
 
 
-my $access = 0; # disable access to all valutes
+#my $access = 0; # disable access to all valutes
 #$access |= $code_val{'NOK'}; # enable access to norwegian krone
 #$access |= $code_val{'DKK'}; # enable access to danish krone
 #$access |= $code_val{'TRY'}; # enable access to turkish lira
-$access |= $code_val{'BGN'}; # enable access leva
-$access |= $code_val{'EUR'}; # enable access euro
-$access |= $code_val{'RUB'}; # enable access rubli
+#$access |= $code_val{'BGN'}; # enable access leva
+#$access |= $code_val{'EUR'}; # enable access euro
+#$access |= $code_val{'RUB'}; # enable access rubli
 #$access = 0b1111111111;
 
-
-if (access_denied($access, $cid)) {
-    $cid = access_cid($access);
-}
+#$cid = &open_cid($access) if ($access ^ $code_val{$cid});
 
 
 
@@ -172,6 +158,29 @@ exit 1;
 # UTILITY FUNCTIONS
 ################################################################################
 
+sub init_session {
+
+    if ($session->param("~logged-in")) {
+
+        return $session->param("~access");  # if logged in, don't bother going further
+    }
+
+    my $user = $cgi->param('user') or return 1;
+    my $password = $cgi->param('password') or return 1;
+
+    # user did submit the login form so let's try to load her/his/its profile if name/pass match
+    my $resultat = DBH::auth_user($user, $password);
+    if ($resultat) {
+
+        $session->expire(SESSION_EXPIRATION);
+        $session->param("~user", $user);
+        $session->param("~logged-in", 1);
+        $session->param("~access", $resultat);
+        return $resultat;
+    }
+
+    return 0; # login failed
+}
 
 sub do_page_top {
 
@@ -200,20 +209,20 @@ sub access_denied($$) {
 
     my ($droit, $clef) = @_;
 
-    if ($droit & $code_val{$clef}) {
+    if ($droit & DBH::level($clef)) {
         return 0;
     } else {
         return 1;
     }
 }
 
-sub access_cid($) {
+sub open_cid($) {
 
     my $droit = shift;
 
-    foreach my $clef (keys %code_val) {
+    foreach my $clef (keys(DBH::level('all'))) {
 
-        if ($droit & $code_val{$clef}) {
+        if ($droit & DBH::level($clef)) {
             return $clef;
         }
     }
@@ -226,9 +235,9 @@ sub where_from_access($) {
     my $droit = shift;
     my $where = 0;
 
-    foreach my $clef (keys %code_val) {
+    foreach my $clef (keys(DBH::level('all'))) {
 
-        if ($droit & $code_val{$clef}) {
+        if ($droit & DBH::level($clef)) {
             if ($where) {
                 $where = "$where OR BCODEVAL LIKE \"$clef\"";
             } else {
