@@ -1,47 +1,60 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="bg" xml:lang="bg">
-<head>
-  <title>SOFTWARE CATALOGUE BANKNOTES</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link href="/bnotes/main.css" rel="stylesheet" type="text/css" />
-</head>
-
-<body style="leftmargin: 0; topmargin: 0">
- 
-<table width="98%" height="100%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#333333">
-  <tr>
-    <td><table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0">
-      <tr> 
-        <td background="/bnotes/images/bg_mid.gif"><table width="100%" border="0" cellspacing="0" cellpadding="0">
-          <tr> 
-            <td height="45">&nbsp; 
-                    <span class="titlewhite"><TMPL_VAR NAME=SAVEINFO></span>
-	    </td>
-
-	    <td align="right"> <input name="Submit" type="submit" value="Close" onclick="window.close();" class="button" >&nbsp; </td>
-          </tr>
-        </table></td>
-      </tr>
-      <tr> 
-        <td align="left" bgcolor="#FFFFFF"></td>
-      </tr>
-        
-      <tr> 
-        <td bgcolor="#FFFFFF"><div align="left"> </div>
-              <div align="left" class="conntent"><font size="2">&nbsp;<img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle"> 
-                <TMPL_VAR NAME=SINFOADD></font></div></td>
-      </tr>  
-      <tr> 
-        <td background="/bnotes/images/hline.gif" bgcolor="#FFFFFF"><img src="/bnotes/images/hline.gif" width="33" height="5"></td>
-      </tr>
+  <head>
+    <title>SOFTWARE CATALOGUE BANKNOTES</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="/bnotes/main.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body style="leftmargin: 0; topmargin: 0">    
+    <table width="98%" height="100%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#333333">
       <tr>
-        <td height="100%" bgcolor="#FFFFFF"> 
-         <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PICTNAME>"></td>
-       </tr>
-     </table></td>
-  </tr>
-</table>
-
-</body>
+        <td>
+          <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+            <tr> 
+              <td background="/bnotes/images/bg_mid.gif">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td height="45">&nbsp; 
+                      <span class="titlewhite">
+                        <TMPL_VAR NAME=SAVEINFO />
+                      </span>
+	            </td>
+                    <td align="right">
+                      <input name="Submit" type="submit" value="Close" onclick="window.close();" class="button" />
+                      &nbsp;
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr> 
+              <td align="left" bgcolor="#FFFFFF"></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#FFFFFF">
+                <div align="left"> </div>
+                <div align="left" class="conntent">
+                  <font size="2">&nbsp;
+                    <img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle" />
+                    <TMPL_VAR NAME=SINFOADD />
+                  </font>
+                </div>
+              </td>
+            </tr>  
+            <tr> 
+              <td background="/bnotes/images/hline.gif" bgcolor="#FFFFFF">
+                <img src="/bnotes/images/hline.gif" width="33" height="5" />
+              </td>
+            </tr>
+            <tr>
+              <td height="100%" bgcolor="#FFFFFF">
+                <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PICTNAME>" />
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

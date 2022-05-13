@@ -1,13 +1,14 @@
 #!/usr/bin/perl
-# ----------------------------------------------------------------------------------------
-# badmin: A PERL CGI script to administrate BSE banknotes system
-# Author: Hristo Grigorov <hgrigorov@gmail.com>
-# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
-# badmin: back-office user crud operationel + user access control 
-# Author: Kaloyan Krastev <kaloyansen@gmail.com>
-# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# badmin: A PERL CGI script to administrate BSE banknotes system                        #
+# Author: Hristo Grigorov <hgrigorov@gmail.com>                                         #
+# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.                       #
+# ------------------------------------------------------------------------------------- #
+# badmin: back-office user crud and user access control                                 #
+# Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 use strict; 
 use warnings;
 use CGI;
@@ -116,10 +117,10 @@ view_user_table() if ($action =~ m/$ACTION_USER_TABLE/);
 &view_user_detail(0) if ($action =~ m/$ACTION_USER_DETAIL/);
 
 # handle user crud
-user_access() if ($action =~ m/$ACTION_USER_ACCESS/);
-user_password()  if ($action =~ m/$ACTION_USER_PASSWORD/);
-user_create()  if ($action =~ m/$ACTION_USER_CREATE/);
-user_delete()  if ($action =~ m/$ACTION_USER_DELETE/);
+update_user_access() if ($action =~ m/$ACTION_USER_ACCESS/);
+update_user_password()  if ($action =~ m/$ACTION_USER_PASSWORD/);
+create_user()  if ($action =~ m/$ACTION_USER_CREATE/);
+delete_user()  if ($action =~ m/$ACTION_USER_DELETE/);
 
 # output bottom page
 view_bottom();
@@ -358,22 +359,7 @@ sub dbupdate {
     view_msg("UPDATE", "DATA SUCCESSFULLY UPDATED!");
 }
 
-sub user_create {
-
-    my $user = $cgi->param('user');
-    my $pass = $cgi->param('password');
-    if ($user && $pass) {
-
-        $message = DBH::db_insert($user, $pass);
-        view_user_table();
-    } else {
-
-        $message = 'create new user aborted - input not good - try again';
-        view_user_detail(0);
-    }
-}
-
-sub user_password {
+sub update_user_password {
 
     my $user = $cgi->param('user');
     my $pass = $cgi->param('password');    
@@ -388,7 +374,7 @@ sub user_password {
     }
 }
 
-sub user_access {
+sub update_user_access {
 
     my $user = $cgi->param('user');
     my $admin = 0;
@@ -402,10 +388,32 @@ sub user_access {
     view_user_table();
 }
 
-sub user_delete {
+sub create_user {
 
     my $user = $cgi->param('user');
-    $message = DBH::db_delete($user);
+    my $pass = $cgi->param('password');
+    if ($user && $pass) {
+
+        $message = DBH::db_insert($user, $pass);
+        view_user_table();
+    } else {
+
+        $message = 'create new user aborted - input not good - try again';
+        view_user_detail(0);
+    }
+}
+
+sub delete_user {
+
+    my $user = $cgi->param('user');
+    if ($user) {
+
+        $message = DBH::db_delete($user);
+    } else {
+
+        $message = 'warning: user not defined';
+    }
+
     view_user_table();
 }
 

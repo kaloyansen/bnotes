@@ -1,9 +1,14 @@
 #!/usr/bin/perl
-# ----------------------------------------------------------------------------------------
-# BNOTES: A PERL CGI script to generate HTML pages for BSE banknotes system
-# Author: Hristo Grigorov <hgrigorov@gmail.com>
-# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# BNOTES: A PERL CGI script to generate HTML pages for BSE banknotes system             #
+# Author: Hristo Grigorov <hgrigorov@gmail.com>                                         #
+# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.                       #
+# ------------------------------------------------------------------------------------- #
+# BNOTES: User access control for BSE banknotes system                                  #
+# Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 use strict; 
 use warnings;
 use CGI;
@@ -11,11 +16,13 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
-# ----------------------------------------------------------------------------------------
-# BNOTES: User access control for BSE banknotes system
-# Author: Kaloyan Krastev <kaloyansen@gmail.com>
-# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
+use constant STATUS_LOGIN_SUCCESS => 200;
+use constant STATUS_ALREADY_IN => 300;
+use constant STATUS_BAD_INPUT => 400;
+use constant STATUS_LOGIN_FAILED => 500;
+use constant ACTION_INFO => 'info';
+use constant ACTION_INFO_FAKE => 'ifake';
+
 my $ACTION_LOGIN = "login";
 my $ACTION_LOGOUT = "logout";
 my $ACTION_ABOUT = "about";
@@ -26,8 +33,6 @@ my $ACTION_COUNTRIES = "countries";
 my $ACTION_VALUTE = "valute";
 my $ACTION_FAKE = "fake";
 #
-my $ACTION_INFO = "info";
-my $ACTION_INFO_FAKE = "ifake";
 my $ACTION_PREVIEW = "preview";
 my $ACTION_PREVIEW_FAKE = "pfake";
 #
@@ -76,18 +81,14 @@ my $fpic = $cgi->param('fpic');
 my $infoid = $cgi->param('infoid');
 my $pageid = $cgi->param('pageid');
 my $strfind = $cgi->param('textfield');
-my $action = $cgi->param('action');
+my $action = $cgi->param('action') // $ACTION_ABOUT;
 
-my $user = $session->param("~user") ? $session->param("~user") : 'guest';
-my $access = init_session();
+#my $user = $session->param("~user") ? $session->param("~user") : 'guest';
+my $client = 'guest';
+my $access = 0;
+my $status = init_session();
 my $message = 'init';
 #if (DBH::init_session($session, $cgi) > 0) {
-if ($access > 0) {
-    $user = $session->param("~user");
-    $user = $user ? $user : 'invited';
-} else {
-    $message = 'access denied';
-}
 
 #$access =~ 0;
 if ($access && &access_denied($access, $cid)) {
@@ -137,13 +138,13 @@ view_countries() if ($action =~ m/$ACTION_COUNTRIES/);
 view_valute() if ($action =~ m/$ACTION_VALUTE/);
 
 # handle info action
-view_info() if ($action =~ m/$ACTION_INFO/);
+view_info() if ($action =~ m/ACTION_INFO/);
 
 # handle fake action
 view_fake() if ($action =~ m/$ACTION_FAKE/);
 
 # handle fake info action
-view_info_fake() if ($action =~ m/$ACTION_INFO_FAKE/);
+view_info_fake() if ($action =~ m/ACTION_INFO_FAKE/);
 
 # handle preview action
 view_preview() if ($action =~ m/$ACTION_PREVIEW/);
@@ -167,25 +168,29 @@ exit 1;
 sub init_session {
 
     if ($session->param("~logged-in")) {
-
-        return $session->param("~access");  # if logged in, don't bother going further
+        # if logged in, don't bother going further
+        $client = $session->param("~user");
+        $access = $session->param("~access");
+        
+        return STATUS_ALREADY_IN;
     }
 
-    my $user = $cgi->param('user') or return 1;
-    my $password = $cgi->param('password') or return 1;
+    my $user = $cgi->param('user') or return STATUS_BAD_INPUT;
+    my $pass = $cgi->param('password') or return STATUS_BAD_INPUT;
 
     # user did submit the login form so let's try to load her/his/its profile if name/pass match
-    my $resultat = DBH::auth_user($user, $password);
-    if ($resultat) {
+    my $resultat = DBH::auth_user($user, $pass);
+    if ($resultat < 0) { # login failed
 
+        return STATUS_LOGIN_FAILED; # login failed
+    } else {
         $session->expire(DBH::SESSION_EXPIRATION);
         $session->param("~user", $user);
         $session->param("~logged-in", 1);
         $session->param("~access", $resultat);
-        return $resultat;
-    }
 
-    return 0; # login failed
+        return STATUS_LOGIN_SUCCESS;
+    }
 }
 
 sub view_top {
@@ -204,11 +209,10 @@ sub view_bottom {
     $PAGE_BOTTOM->param(ACTION_LIBRARY => $ACTION_LIBRARY);
     $PAGE_BOTTOM->param(ACTION_NEWS => $ACTION_NEWS);
     $PAGE_BOTTOM->param(ACTION_LOGIN => $ACTION_LOGIN);
-    $PAGE_BOTTOM->param(ACTION_LABEL => $user);
+    $PAGE_BOTTOM->param(ACTION_LABEL => $client);
     $PAGE_BOTTOM->param(MESSAGE => $message);
 
     print $PAGE_BOTTOM->output;
-
 }
 
 sub access_denied($$) {
@@ -407,7 +411,7 @@ sub view_valute {
             COUNTRY  => $cid,
             NUMB     => $result->{NUMB},
             INDICATE => $result->{INDICATE}, 
-            ACTION_INFO => $ACTION_INFO,
+            ACTION_INFO => ACTION_INFO,
             SAVEINFO => $result->{SAVEINFO}
             );
 
@@ -467,7 +471,7 @@ sub view_valute {
                 BID      => $result->{NUMB},
                 INDICATE => $result->{INDICATE},
                 SAVEINFO => $result->{SAVEINFO},
-                ACTION_INFO => $ACTION_INFO
+                ACTION_INFO => ACTION_INFO
                 );
 
             push(@front_loop, \%f_row);
@@ -487,7 +491,7 @@ sub view_valute {
                 BID      => $result->{NUMB},
                 INDICATE => $result->{INDICATE},
                 SAVEINFO => $result->{SAVEINFO},
-                ACTION_INFO => $ACTION_INFO
+                ACTION_INFO => ACTION_INFO
                 );
 
             push(@back_loop, \%b_row);
@@ -636,7 +640,7 @@ sub view_fake {
 
     $PAGE_FAKE->param(NAMEFALSE => $results4->{NAMEFALSE});
 
-    $PAGE_FAKE->param(ACTION_INFO_FAKE => $ACTION_INFO_FAKE);
+    $PAGE_FAKE->param(ACTION_INFO_FAKE => ACTION_INFO_FAKE);
     $PAGE_FAKE->param(ACTION_PREVIEW_FAKE => $ACTION_PREVIEW_FAKE);
 
     print $PAGE_FAKE->output;
@@ -741,9 +745,8 @@ sub view_msg($$) {
 
 sub normalize_text($) {
 
-    my $txt = shift;
-    $txt = $txt ? $txt : 'normalize_text';
-
+    my $txt = shift // 'normalize_text';
+    # $txt = $txt ? $txt : 'normalize_text';
     $txt =~ s/%NL%/<br \/>/g;
     $txt =~ s/%SP%/\&nbsp\;/g;
     $txt =~ s/%TAB%/\&nbsp\;\&nbsp\;\&nbsp\;\&nbsp\;/g;
@@ -757,7 +760,6 @@ sub needs_top {
     return 1 if ($action =~ m/$ACTION_LOGIN/ or $action =~ m/$ACTION_LOGOUT/ or
                  $action =~ m/$ACTION_ABOUT/ or $action =~ m/$ACTION_NEWS/ or 
                  $action =~ m/$ACTION_LIBRARY/);
-
     return 0;
 }
 
@@ -766,17 +768,14 @@ sub needs_top_small {
 
     return 1 if ( $action =~ m/$ACTION_FIND/ or $action =~ m/$ACTION_COUNTRIES/ or
                   $action =~ m/$ACTION_VALUTE/ or $action =~ m/$ACTION_FAKE/);
-
     return 0;
 }
 
 sub needs_bottom {
 
-#    return 0 if ( $action =~ m/$ACTION_INFO/ or $action =~ m/$ACTION_INFO_FAKE/ or
-#                  $action =~ m/$ACTION_PREVIEW/ or $action =~ m/$ACTION_PREVIEW_FAKE/);
-
-    return 1;
+    return 1; # ATTENTION
+    return 0 if ( $action =~ m/ACTION_INFO/ or $action =~ m/ACTION_INFO_FAKE/ or
+                  $action =~ m/$ACTION_PREVIEW/ or $action =~ m/$ACTION_PREVIEW_FAKE/);
 }
-
 
 # EOF

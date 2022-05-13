@@ -1,14 +1,15 @@
 package DBH;
-# DBH: BSE banknotes system database access
-# Author: Hristo Grigorov <hgrigorov@gmail.com>
-# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
-# Credentials are loaded from DATABASE_CREDIT_FILE
-# User access control is bit packed in the database under CURRENCY.USERS.ADMIN  
-# Author: Kaloyan Krastev <kaloyansen@gmail.com>
-# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
-#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# DBH: BSE banknotes system database access                                             #
+# Author: Hristo Grigorov <hgrigorov@gmail.com>                                         #
+# Copyright (c) 2011-2012 Busoft Engineering. All right reserved.                       #
+# ------------------------------------------------------------------------------------- #
+# Credentials are loaded from DATABASE_CREDIT_FILE                                      #
+# User access control is bit packed in the database under CURRENCY.USERS.ADMIN          #
+# Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
+# Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 use strict; 
 use warnings;
 use DBI;
@@ -211,7 +212,7 @@ sub auth_user($$) {
         return $result->{ADMIN};
     } else {
         # print STDERR "User $user NOT authorized with password $password\n";
-        return 0;
+        return -1;
     }
 }
 
