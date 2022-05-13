@@ -16,7 +16,11 @@ $code_val{'GBP'} = 128;
 $code_val{'NOK'} = 256;
 $code_val{'RUB'} = 512;
 
-print "size(int) = ", $Config{intsize}, ' bytes/octets  =  ', $Config{intsize} * 8, ' bits', BR;
+my $size = $Config{intsize} * 8;
+print "int size is $size bits\n";
+$size = 55;
+my $binary = '%0'.$size.'b';
+$binary = "%0b";
 
 my $access = 0;
 $access |= $code_val{'DKK'};
@@ -35,6 +39,12 @@ $cid = 'NOK';
 
 print $cid, BR;
 print $access & $code_val{$cid}, BR;
+
+print $cid, BR;
+
+$access = ~0;
+printf($binary, $access);
+print BR;
 
 
 sub cidFilter($$) {

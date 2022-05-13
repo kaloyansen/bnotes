@@ -1,44 +1,47 @@
 package DBH;
-
-# ----------------------------------------------------------------------------------------
 # DBH: BSE banknotes system database access
 # Author: Hristo Grigorov <hgrigorov@gmail.com>
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.
-# ----------------------------------------------------------------------------------------
-
-use strict; 
-use warnings;
-use DateTime::Format::MySQL;
-use DBI;
-use Data::Dumper;
-use constant DATABASE_CREDIT_FILE => '/var/www/.db';
-
 # ----------------------------------------------------------------------------------------
 # Credentials are loaded from DATABASE_CREDIT_FILE
 # User access control is bit packed in the database under CURRENCY.USERS.ADMIN  
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.
 # ----------------------------------------------------------------------------------------
+#
+use strict; 
+use warnings;
+use DBI;
+use Data::Dumper;
+use DateTime::Format::MySQL; # yum install perl-DateTime-Format-MySQL
+use constant SESSION_EXPIRATION => '+123m';
+use constant SUPERSESSION_EXPIRATION => '+123m'; #'+10m';
+use constant DATABASE_CREDIT_FILE => '/var/www/.db';
 
-my %global_access_level_mask = ();
-# user access control level
-$global_access_level_mask{ADM} = 2 ** 0; # administrator can modify users and change their access level
-$global_access_level_mask{BGN} = 2 ** 1; # lev bulgarian read access
-$global_access_level_mask{CAD} = 2 ** 2; # dollar canadian read access
-$global_access_level_mask{CHF} = 2 ** 3; # ...
-$global_access_level_mask{DKK} = 2 ** 4; # ...
-$global_access_level_mask{USD} = 2 ** 5;
-$global_access_level_mask{TRY} = 2 ** 6;
-$global_access_level_mask{EUR} = 2 ** 7;
-$global_access_level_mask{GBP} = 2 ** 8;
-$global_access_level_mask{NOK} = 2 ** 9;
-$global_access_level_mask{RUB} = 2 ** 10;
-# ...
-# ...
-$global_access_level_mask{FOX} = 2 ** 15; # counterfeit banknotes/faux billets/фалшиви банкноти
+my %global_access_control_mask = ();       # user access control mask
+$global_access_control_mask{ADM} = 2 ** 0; # administrator can modify users and change their access level
+$global_access_control_mask{BGN} = 2 ** 1; # lev bulgarian read access
+$global_access_control_mask{CAD} = 2 ** 2; # dollar canadian read access
+$global_access_control_mask{CHF} = 2 ** 3; # frank read access
+$global_access_control_mask{DKK} = 2 ** 4; # krona read access
+$global_access_control_mask{USD} = 2 ** 5; # dollar read access
+$global_access_control_mask{TRY} = 2 ** 6; # lira read access
+$global_access_control_mask{EUR} = 2 ** 7; # euro read access
+$global_access_control_mask{GBP} = 2 ** 8; # pound read access
+$global_access_control_mask{NOK} = 2 ** 9; # kroni read access
+$global_access_control_mask{RUB} = 2 ** 10; # rubli read access
+$global_access_control_mask{B11} = 2 ** 11; # bit 11 available
+$global_access_control_mask{B11} = 2 ** 12; # bit 12 available
+$global_access_control_mask{B11} = 2 ** 13; # bit 13 available
+$global_access_control_mask{B11} = 2 ** 14; # bit 14 available
+$global_access_control_mask{FOX} = 2 ** 15; # counterfeit banknotes/faux billets/фалшиви банкноти
 
 my $debuglevel = 4;
 my $DBH = undef; 
+
+while (<DATA>) {
+    # process the line
+}
 
 sub database_credit_from($) {
 
@@ -183,10 +186,10 @@ sub db_update($) {
     return $result;
 }
 
-sub level($) {
+sub control($) {
 
-    my $code = shift;
-    return $code eq 'all' ? %global_access_level_mask : $global_access_level_mask{$code};
+    my $code = shift // 'all';
+    return $code eq 'all' ? %global_access_control_mask : $global_access_control_mask{$code};
 }
 
 sub now() {
@@ -238,4 +241,7 @@ sub auth_admin($$) {
 
 1;
 
-__END__
+__DATA__
+
+
+

@@ -10,15 +10,12 @@
 # ----------------------------------------------------------------------------------------
 use strict; 
 use warnings;
-#use Digest::MD5;
 use CGI;
 use DBH;
 use Socket;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
-use constant SUPERSESSION_EXPIRATION => '+123m';
-# my $SESSION_EXPIRATION = '+10m';
 
 #################################################### logique
 my $ACTION_LOGIN = "_login";
@@ -75,6 +72,9 @@ my $action = $cgi->param('action');
 $action = $action ? $action : $ACTION_USER_TABLE;
 
 my $message = "Please, make sure there aren't any users working with the software before performing update!";
+my $title = "SYSTEM ADMINISTRATION";
+$title = "ACCESS LEVEL ADMINISTRATION" if ($action =~ m/$ACTION_USER_TABLE/);
+$title = "USER DETAIL ADMINISTRATION" if ($action =~ m/$ACTION_USER_DETAIL/);
 
 if ($action !~ m/$ACTION_LOGIN/ && !init_supersession()) {
 
@@ -112,7 +112,8 @@ view_product() if ($action =~ m/$ACTION_PRODUCT/);
 
 # handle user view
 view_user_table() if ($action =~ m/$ACTION_USER_TABLE/);
-view_user_detail() if ($action =~ m/$ACTION_USER_DETAIL/);
+&view_user_detail(1) if ($action =~ m/$ACTION_USER_DETAIL/);
+&view_user_detail(0) if ($action =~ m/$ACTION_USER_DETAIL/);
 
 # handle user crud
 user_access() if ($action =~ m/$ACTION_USER_ACCESS/);
@@ -146,7 +147,7 @@ sub init_supersession {
     # so let's try to load his/her profile if name/psswds match
     #if (auth_userr($user, $password)) {
     if (DBH::auth_superuser($user, $password)) {
-        $session->expire(SUPERSESSION_EXPIRATION);
+        $session->expire(DBH::SUPERSESSION_EXPIRATION);
         $session->param("~user", $user);
         $session->param("~logged-in", 1);
         return 1;
@@ -178,6 +179,7 @@ sub view_top {
     $PAGE_TOP->param(ACTION_FUPDATE => $ACTION_FUPDATE);
     $PAGE_TOP->param(ACTION_USERS => $ACTION_USER_TABLE);
     $PAGE_TOP->param(ACTION_PRODUCT => $ACTION_PRODUCT);
+    $PAGE_TOP->param(TITLE => $title);
 
     print $PAGE_TOP->output;
 }
@@ -197,7 +199,6 @@ sub view_msg($$) {
     $PAGE_MSG->param(MESSAGE => $msg);
 
     print $PAGE_MSG->output;
-
 }
 
 sub view_product {
@@ -219,17 +220,27 @@ sub view_product {
 
 }
 
-sub view_user_detail {
+sub view_user_detail($) {
 
+    my $option = shift // 1;
     my $user = $cgi->param('user');
+    my $action = $ACTION_USER_PASSWORD;
+    my $message = 'modify user password';
+    my $usereadonly = 'readonly';
+    if ($option == 0) {
+        $user = '';
+        $action = $ACTION_USER_CREATE;
+        $message = 'create new user';
+        $usereadonly = '';
+    }
 
-    $PAGE_USER_DETAIL->param(MESSAGE => 'modify user password');
+    $PAGE_USER_DETAIL->param(MESSAGE => $message);
     $PAGE_USER_DETAIL->param(USER => $user);
+    $PAGE_USER_DETAIL->param(USEREADONLY => $usereadonly);
     $PAGE_USER_DETAIL->param(PASSWORD => '');
-    $PAGE_USER_DETAIL->param(ACTION_PASS => $ACTION_USER_PASSWORD);
-    $PAGE_USER_DETAIL->param(ACTION_NEW => $ACTION_USER_CREATE);
-    print $PAGE_USER_DETAIL->output;
+    $PAGE_USER_DETAIL->param(ACTION => $action);
 
+    print $PAGE_USER_DETAIL->output;
 }
 
 sub view_user_table {
@@ -247,17 +258,17 @@ sub view_user_table {
             LOCKED   => $result->{LOCKED} ? "checked" : "",
             ACTIVE   => $result->{ACTIVE} ? "checked" : "",
             ADROW    => $admin, # ? "checked" : "",
-            ADMIN    => $admin & DBH::level('ADM') ? "checked" : "",
-            ADBGN    => $admin & DBH::level('BGN') ? "checked" : "",
-            ADCAD    => $admin & DBH::level('CAD') ? "checked" : "",
-            ADCHF    => $admin & DBH::level('CHF') ? "checked" : "",
-            ADDKK    => $admin & DBH::level('DKK') ? "checked" : "",
-            ADUSD    => $admin & DBH::level('USD') ? "checked" : "",
-            ADTRY    => $admin & DBH::level('TRY') ? "checked" : "",
-            ADEUR    => $admin & DBH::level('EUR') ? "checked" : "",
-            ADGBP    => $admin & DBH::level('GBP') ? "checked" : "",
-            ADNOK    => $admin & DBH::level('NOK') ? "checked" : "",
-            ADRUB    => $admin & DBH::level('RUB') ? "checked" : "",
+            ADMIN    => $admin & DBH::control('ADM') ? "checked" : "",
+            ADBGN    => $admin & DBH::control('BGN') ? "checked" : "",
+            ADCAD    => $admin & DBH::control('CAD') ? "checked" : "",
+            ADCHF    => $admin & DBH::control('CHF') ? "checked" : "",
+            ADDKK    => $admin & DBH::control('DKK') ? "checked" : "",
+            ADUSD    => $admin & DBH::control('USD') ? "checked" : "",
+            ADTRY    => $admin & DBH::control('TRY') ? "checked" : "",
+            ADEUR    => $admin & DBH::control('EUR') ? "checked" : "",
+            ADGBP    => $admin & DBH::control('GBP') ? "checked" : "",
+            ADNOK    => $admin & DBH::control('NOK') ? "checked" : "",
+            ADRUB    => $admin & DBH::control('RUB') ? "checked" : "",
             CURRENCY => $result->{CURRENCY},
             CREATED  => $result->{CREATED},
             LOGGED   => $result->{LOGGED},
@@ -350,7 +361,44 @@ sub dbupdate {
 sub user_create {
 
     my $user = $cgi->param('user');
-    $message = DBH::db_insert($user, $cgi->param('password')); 
+    my $pass = $cgi->param('password');
+    if ($user && $pass) {
+
+        $message = DBH::db_insert($user, $pass);
+        view_user_table();
+    } else {
+
+        $message = 'create new user aborted - input not good - try again';
+        view_user_detail(0);
+    }
+}
+
+sub user_password {
+
+    my $user = $cgi->param('user');
+    my $pass = $cgi->param('password');    
+    if ($user && $pass) {
+
+        $message = DBH::db_update("UPDATE USERS SET PASSWORD = MD5(\'$pass\') WHERE USER LIKE \'$user\'");
+        view_msg("CHANGE USER PASSWORD", "USER $user PASSWORD IS CHANGED");
+    } else {
+
+        $message = 'update user password aborted - input not good - try again';
+        view_user_detail(1);        
+    }
+}
+
+sub user_access {
+
+    my $user = $cgi->param('user');
+    my $admin = 0;
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
+
+        $admin += $cgi->param($clef) ? $value : 0;
+    }
+
+    $message = DBH::db_update_column('ADMIN', $admin, $user);
     view_user_table();
 }
 
@@ -358,28 +406,6 @@ sub user_delete {
 
     my $user = $cgi->param('user');
     $message = DBH::db_delete($user);
-    view_user_table();
-}
-
-sub user_password {
-
-    my $user = $cgi->param('user');
-    my $password = $cgi->param('password');
-    
-    $message = DBH::db_update("UPDATE USERS SET PASSWORD = MD5(\'$password\') WHERE USER LIKE \'$user\'");
-    view_msg("CHANGE USER PASSWORD", "USER $user PASSWORD IS CHANGED");
-}
-
-sub user_access {
-
-    my $user = $cgi->param('user');
-    my $admin = 0;
-    my %code = DBH::level('all');
-    while( my ($clef, $value) = each(%code) ) {
-        $admin += $cgi->param($clef) ? $value : 0;
-    }
-
-    $message = DBH::db_update_column('ADMIN', $admin, $user);
     view_user_table();
 }
 

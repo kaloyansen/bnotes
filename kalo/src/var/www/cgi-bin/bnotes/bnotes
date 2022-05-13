@@ -11,7 +11,6 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
-use constant SESSION_EXPIRATION => '+123m';
 # ----------------------------------------------------------------------------------------
 # BNOTES: User access control for BSE banknotes system
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>
@@ -81,72 +80,79 @@ my $action = $cgi->param('action');
 
 my $user = $session->param("~user") ? $session->param("~user") : 'guest';
 my $access = init_session();
+my $message = 'init';
 #if (DBH::init_session($session, $cgi) > 0) {
 if ($access > 0) {
     $user = $session->param("~user");
     $user = $user ? $user : 'invited';
+} else {
+    $message = 'access denied';
+}
+
+#$access =~ 0;
+if ($access && &access_denied($access, $cid)) {
+
+    $message = 'access denied to '.$cid;
+    $cid = &open_cid($access);
+    if ($cid) {
+
+        $message = 'access allowed to '.$cid;
+    } else {
+
+        $message = 'no access to the database';
+    }
+} else {
+
+    ;
 }
 
 
-#my $access = 0; # disable access to all valutes
-#$access |= $code_val{'NOK'}; # enable access to norwegian krone
-#$access |= $code_val{'DKK'}; # enable access to danish krone
-#$access |= $code_val{'TRY'}; # enable access to turkish lira
-#$access |= $code_val{'BGN'}; # enable access leva
-#$access |= $code_val{'EUR'}; # enable access euro
-#$access |= $code_val{'RUB'}; # enable access rubli
-#$access = 0b1111111111;
-
-#$cid = &open_cid($access) if ($access ^ $code_val{$cid});
-
-
-
 # output top page 
-do_page_top() if (needs_page_top());
-do_page_top_small() if (needs_page_top_small());
+view_top() if (needs_top());
+view_top_small() if (needs_top_small());
 
 # handle login action
-#do_page_login() if ($action =~ m/$ACTION_LOGIN/);
-do_page_login() if ($action eq $ACTION_LOGIN);
+#view_login() if ($action =~ m/$ACTION_LOGIN/);
+view_login() if ($action =~ m/$ACTION_LOGIN/);
 
 # handle logout action
-#do_page_logout() if ($action =~ m/$ACTION_LOGOUT/);
+#view_logout() if ($action =~ m/$ACTION_LOGOUT/);
 
 # handle about action
-print $PAGE_ABOUT->output if ($action eq $ACTION_ABOUT);
+print $PAGE_ABOUT->output if ($action =~ m/$ACTION_ABOUT/);
 
 # handle login action
-do_page_news() if ($action eq $ACTION_NEWS);
+view_news() if ($action =~ m/$ACTION_NEWS/);
 
 # handle login action
-do_page_library() if ($action eq $ACTION_LIBRARY);
+view_library() if ($action =~ m/$ACTION_LIBRARY/);
 
 # handle find action
-do_page_find() if ($action eq $ACTION_FIND);
+view_find() if ($action =~ m/$ACTION_FIND/);
 
 # handle countries action
-do_page_countries() if ($action eq $ACTION_COUNTRIES);
+view_countries() if ($action =~ m/$ACTION_COUNTRIES/);
 
 # handle valute action
-do_page_valute() if ($action eq $ACTION_VALUTE);
+view_valute() if ($action =~ m/$ACTION_VALUTE/);
 
 # handle info action
-do_page_info() if ($action eq $ACTION_INFO);
+view_info() if ($action =~ m/$ACTION_INFO/);
 
 # handle fake action
-do_page_fake() if ($action eq $ACTION_FAKE);
+view_fake() if ($action =~ m/$ACTION_FAKE/);
 
 # handle fake info action
-do_page_info_fake() if ($action eq $ACTION_INFO_FAKE);
+view_info_fake() if ($action =~ m/$ACTION_INFO_FAKE/);
 
 # handle preview action
-do_page_preview() if ($action eq $ACTION_PREVIEW);
+view_preview() if ($action =~ m/$ACTION_PREVIEW/);
 
 # handle preview fake action
-do_page_preview_fake() if ($action eq $ACTION_PREVIEW_FAKE);
+view_preview_fake() if ($action =~ m/$ACTION_PREVIEW_FAKE/);
 
 # output bottom page
-do_page_bottom();# if (needs_page_bottom());
+view_bottom() if (needs_bottom());
 
 # disconnect from database
 DBH::db_disconnect();
@@ -172,7 +178,7 @@ sub init_session {
     my $resultat = DBH::auth_user($user, $password);
     if ($resultat) {
 
-        $session->expire(SESSION_EXPIRATION);
+        $session->expire(DBH::SESSION_EXPIRATION);
         $session->param("~user", $user);
         $session->param("~logged-in", 1);
         $session->param("~access", $resultat);
@@ -182,7 +188,7 @@ sub init_session {
     return 0; # login failed
 }
 
-sub do_page_top {
+sub view_top {
 
     $PAGE_TOP->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
     $PAGE_TOP->param(ACTION_ABOUT => $ACTION_ABOUT);
@@ -192,37 +198,37 @@ sub do_page_top {
     print $PAGE_TOP->output;
 }
 
-sub do_page_bottom {
+sub view_bottom {
 
     $PAGE_BOTTOM->param(ACTION_ABOUT => $ACTION_ABOUT);
     $PAGE_BOTTOM->param(ACTION_LIBRARY => $ACTION_LIBRARY);
     $PAGE_BOTTOM->param(ACTION_NEWS => $ACTION_NEWS);
     $PAGE_BOTTOM->param(ACTION_LOGIN => $ACTION_LOGIN);
     $PAGE_BOTTOM->param(ACTION_LABEL => $user);
+    $PAGE_BOTTOM->param(MESSAGE => $message);
 
     print $PAGE_BOTTOM->output;
 
 }
 
-
 sub access_denied($$) {
 
     my ($droit, $clef) = @_;
 
-    if ($droit & DBH::level($clef)) {
-        return 0;
-    } else {
-        return 1;
-    }
+    if (!$clef) {                       return 0; }
+    if ($droit & DBH::control($clef)) { return 0; }
+    else {                              return 1; }
 }
 
 sub open_cid($) {
 
     my $droit = shift;
 
-    foreach my $clef (keys(DBH::level('all'))) {
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
 
-        if ($droit & DBH::level($clef)) {
+        if ($droit & $value) {
+
             return $clef;
         }
     }
@@ -233,14 +239,18 @@ sub open_cid($) {
 sub where_from_access($) {
 
     my $droit = shift;
+
     my $where = 0;
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
+#    foreach my $clef (keys(DBH::control('all'))) {
+        if ($droit & $value) {
 
-    foreach my $clef (keys(DBH::level('all'))) {
-
-        if ($droit & DBH::level($clef)) {
             if ($where) {
+
                 $where = "$where OR BCODEVAL LIKE \"$clef\"";
             } else {
+
                 $where = "WHERE BCODEVAL LIKE \"$clef\"";
             }    
         }
@@ -249,7 +259,7 @@ sub where_from_access($) {
     return $where;
 }
 
-sub do_page_top_small {
+sub view_top_small {
 
     my $where = where_from_access($access);
     $where = '';
@@ -278,7 +288,7 @@ sub do_page_top_small {
 
 }
 
-sub do_page_login {
+sub view_login {
 
     $PAGE_LOGIN->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
     #$PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
@@ -287,14 +297,14 @@ sub do_page_login {
 
 }
 
-sub do_page_logout {
+sub view_logout {
 
     &destroy_session();
-    do_page_msg("LOG OUT", "YOU HAVE SUCCESSFULLY LOGGED OUT OF THE SYSTEM!");
+    view_msg("LOG OUT", "YOU HAVE SUCCESSFULLY LOGGED OUT OF THE SYSTEM!");
 
 }
 
-sub do_page_find {
+sub view_find {
 
     my $results1 = DBH::db_select("SELECT *  FROM COUNTRY WHERE BCODEVAL LIKE \"%$strfind%\" OR CURRENCY LIKE \"%$strfind%\" OR COINNAME LIKE \"%$strfind%\" OR COUNTRY LIKE \"%$strfind%\"");
 
@@ -325,7 +335,7 @@ sub do_page_find {
 
 }
 
-sub do_page_countries {
+sub view_countries {
 
     my $results1 = DBH::db_select("SELECT * FROM BNOTES WHERE BCODE = \'$cid\' ORDER BY NOMINAL");
     my $results2 = DBH::db_select_row("SELECT * FROM COUNTRY WHERE BCODEVAL = \'$cid\'");
@@ -382,7 +392,7 @@ sub do_page_countries {
 #
 # Renders valute info page
 #
-sub do_page_valute {
+sub view_valute {
 
     my $results1 = DBH::db_select("SELECT * FROM BNOTESI WHERE NUMB = $bid ORDER BY INDICATE");
     my $results2 = DBH::db_select("SELECT * FROM FBNOTESL WHERE NUMB = $bid ORDER BY NUMBF");
@@ -515,7 +525,7 @@ sub do_page_valute {
 
 }
 
-sub do_page_info {
+sub view_info {
 
     return if ($cid eq "" or $bid eq "" or $infoid eq "");
 
@@ -539,7 +549,7 @@ sub do_page_info {
 
 }
 
-sub do_page_fake {
+sub view_fake {
 
     my $results1 = DBH::db_select("SELECT * FROM FBNOTES WHERE NUMBF = $fbid");
     my $results2 = DBH::db_select_row("SELECT * FROM FBNOTESL WHERE NUMBF = $fbid");
@@ -632,7 +642,7 @@ sub do_page_fake {
     print $PAGE_FAKE->output;
 }
 
-sub do_page_info_fake {
+sub view_info_fake {
 
     return if ($cid eq "" or $fbid eq "" or $fbox eq "");
 
@@ -661,7 +671,7 @@ sub do_page_info_fake {
     print $PAGE_INFOFAKE->output;
 }
 
-sub do_page_preview {
+sub view_preview {
 
     my $results1 = DBH::db_select_row("SELECT * FROM BNOTES WHERE NUMB = $bid");
 
@@ -677,7 +687,7 @@ sub do_page_preview {
 
 }
 
-sub do_page_preview_fake {
+sub view_preview_fake {
 
     $PAGE_PREVIEW_FAKE->param(COUNTRY => $cid);
     $PAGE_PREVIEW_FAKE->param(IMAGE   => $fpic);
@@ -685,7 +695,7 @@ sub do_page_preview_fake {
     print $PAGE_PREVIEW_FAKE->output;
 }
 
-sub do_page_news {
+sub view_news {
 
     my $msg = "";
     open(FD, "../../html/bnotes/data/fnew.txt");
@@ -701,7 +711,7 @@ sub do_page_news {
 
 }
 
-sub do_page_library {
+sub view_library {
 
 
     my $msg = "";
@@ -718,7 +728,7 @@ sub do_page_library {
 
 }
 
-sub do_page_msg($$) {
+sub view_msg($$) {
 
     my ($title, $msg) = @_;
 
@@ -742,33 +752,30 @@ sub normalize_text($) {
 }
 
 # returns true for actions that do not require authentication
-sub needs_page_top {
+sub needs_top {
 
-    return 1 if ($action eq $ACTION_LOGIN or $action eq $ACTION_LOGOUT or
-                 $action eq $ACTION_ABOUT or $action eq $ACTION_NEWS or 
-                 $action eq $ACTION_LIBRARY);
+    return 1 if ($action =~ m/$ACTION_LOGIN/ or $action =~ m/$ACTION_LOGOUT/ or
+                 $action =~ m/$ACTION_ABOUT/ or $action =~ m/$ACTION_NEWS/ or 
+                 $action =~ m/$ACTION_LIBRARY/);
 
     return 0;
-
 }
 
 
-sub needs_page_top_small {
+sub needs_top_small {
 
-    return 1 if ( $action eq $ACTION_FIND or $action eq $ACTION_COUNTRIES or
-                  $action eq $ACTION_VALUTE or $action eq $ACTION_FAKE);
+    return 1 if ( $action =~ m/$ACTION_FIND/ or $action =~ m/$ACTION_COUNTRIES/ or
+                  $action =~ m/$ACTION_VALUTE/ or $action =~ m/$ACTION_FAKE/);
 
     return 0;
-
 }
 
-sub needs_page_bottom {
+sub needs_bottom {
 
-    return 0 if ( $action eq $ACTION_INFO or $action eq $ACTION_INFO_FAKE or
-                  $action eq $ACTION_PREVIEW or $action eq $ACTION_PREVIEW_FAKE);
+#    return 0 if ( $action =~ m/$ACTION_INFO/ or $action =~ m/$ACTION_INFO_FAKE/ or
+#                  $action =~ m/$ACTION_PREVIEW/ or $action =~ m/$ACTION_PREVIEW_FAKE/);
 
     return 1;
-
 }
 
 

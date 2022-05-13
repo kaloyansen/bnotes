@@ -17,15 +17,19 @@
                 </tr>
                 <tr align="left">
                   <td height="40" class="conntent">&nbsp;&nbsp;<strong>User:</strong></td>
-                  <td><input name="user" type="text" id="user" size="20" VALUE="<TMPL_VAR NAME=USER>" /></td>
+                  <td><input name="user"
+                             type="text"
+                             size="20"
+                             value="<TMPL_VAR NAME=USER>" <TMPL_VAR NAME=USEREADONLY> /></td>
                   <td height ="40" class="conntent">&nbsp;<strong>Password:</strong></td>
-                  <td><input name="password" type="text" id="password" size="21" value="<TMPL_VAR NAME=PASSWORD>" /></td>
+                  <td><input name="password"
+                             type="password"
+                             size="21"
+                             value="<TMPL_VAR NAME=PASSWORD>" /></td>
                 </tr>
-
                 <tr align="right" >
                   <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
-                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION_NEW>" />&nbsp;
-                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION_PASS>" />&nbsp;
+                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION>" />&nbsp;
                   </td>
                 </tr>
               </table>

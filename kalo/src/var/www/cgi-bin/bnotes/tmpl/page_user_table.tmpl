@@ -38,8 +38,8 @@
 	    <tr align="center" class="conntent">
 	      <td align="center"><TMPL_VAR NAME=ID></td>
 	      <td><input type="text" name="user" value="<TMPL_VAR NAME=USER>" readonly /></td>
-          <td><input type="checkbox" name="active" <TMPL_VAR NAME=ACTIVE> /></td>
-          <td><input type="checkbox" name="locked" <TMPL_VAR NAME=LOCKED> /></td>
+          <td><input type="checkbox" name="active" onclick="return false;" <TMPL_VAR NAME=ACTIVE> /></td>
+          <td><input type="checkbox" name="locked" onclick="return false;" <TMPL_VAR NAME=LOCKED> /></td>
           <td><input type="checkbox" name="ADM" value=1 <TMPL_VAR NAME=ADMIN> />              
           <TMPL_VAR NAME=ADROW></td>
           <td><input type="checkbox" name="BGN" value=1 <TMPL_VAR NAME=ADBGN> /></td>
@@ -52,7 +52,7 @@
           <td><input type="checkbox" name="GBP" value=1 <TMPL_VAR NAME=ADGBP> /></td>
           <td><input type="checkbox" name="NOK" value=1 <TMPL_VAR NAME=ADNOK> /></td>
           <td><input type="checkbox" name="RUB" value=1 <TMPL_VAR NAME=ADRUB> /></td>
-          <td><input type="text" name="currency" value="<TMPL_VAR NAME=CURRENCY>" size="3" class="conntent" /></td>
+          <td><input type="text" name="currency" value="<TMPL_VAR NAME=CURRENCY>" size="3" class="conntent" readonly /></td>
 	      <td><TMPL_VAR NAME=CREATED></td>
           <td><TMPL_VAR NAME=LOGGED></td>
           <td><TMPL_VAR NAME=SESSIONS></td>
