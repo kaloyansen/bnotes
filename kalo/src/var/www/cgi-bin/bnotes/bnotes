@@ -16,26 +16,25 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+
 use constant STATUS_LOGIN_SUCCESS => 200;
 use constant STATUS_ALREADY_IN => 300;
 use constant STATUS_BAD_INPUT => 400;
 use constant STATUS_LOGIN_FAILED => 500;
 use constant ACTION_INFO => 'info';
 use constant ACTION_INFO_FAKE => 'ifake';
+use constant ACTION_LOGIN => 'login';
+use constant ACTION_LOGOUT => 'logout';
+use constant ACTION_ABOUT => 'about';
+use constant ACTION_NEWS => 'news';
+use constant ACTION_LIBRARY => 'library';
+use constant ACTION_FIND => 'find';
+use constant ACTION_COUNTRIES => 'countries';
+use constant ACTION_VALUTE => 'valute';
+use constant ACTION_FAKE => 'fake';
+use constant ACTION_PREVIEW => 'preview';
+use constant ACTION_PREVIEW_FAKE => 'pfake';
 
-my $ACTION_LOGIN = "login";
-my $ACTION_LOGOUT = "logout";
-my $ACTION_ABOUT = "about";
-my $ACTION_NEWS = "news";
-my $ACTION_LIBRARY = "library";
-my $ACTION_FIND = "find";
-my $ACTION_COUNTRIES = "countries";
-my $ACTION_VALUTE = "valute";
-my $ACTION_FAKE = "fake";
-#
-my $ACTION_PREVIEW = "preview";
-my $ACTION_PREVIEW_FAKE = "pfake";
-#
 my $PAGE_ABOUT = HTML::Template->new(filename => 'tmpl/page_about.tmpl');
 my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom.tmpl');
 my $PAGE_COUNTRIES = HTML::Template->new(filename => 'tmpl/page_countries.tmpl');
@@ -55,15 +54,13 @@ my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
 my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
 
 
-################################################################################
-# MAIN FUNCTION                                                                
-################################################################################
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# MAIN FUNCTION                                                               #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# connect to database
-DBH::db_connect();
+DBH::db_connect();# connect to database
 
-# do some CGI stuff
-my $cgi = new CGI;
+my $cgi = new CGI;# do some CGI stuff
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
 #my $cookie = $cgi->cookie(CGISESSID => $session->id );
 #my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
@@ -81,16 +78,13 @@ my $fpic = $cgi->param('fpic');
 my $infoid = $cgi->param('infoid');
 my $pageid = $cgi->param('pageid');
 my $strfind = $cgi->param('textfield');
-my $action = $cgi->param('action') // $ACTION_ABOUT;
+my $action = $cgi->param('action') // ACTION_ABOUT;
 
-#my $user = $session->param("~user") ? $session->param("~user") : 'guest';
 my $client = 'guest';
 my $access = 0;
 my $status = init_session();
 my $message = 'init';
-#if (DBH::init_session($session, $cgi) > 0) {
 
-#$access =~ 0;
 if ($access && &access_denied($access, $cid)) {
 
     $message = 'access denied to '.$cid;
@@ -113,44 +107,43 @@ view_top() if (needs_top());
 view_top_small() if (needs_top_small());
 
 # handle login action
-#view_login() if ($action =~ m/$ACTION_LOGIN/);
-view_login() if ($action =~ m/$ACTION_LOGIN/);
+view_login() if ($action =~ m/ACTION_LOGIN/);
 
 # handle logout action
-#view_logout() if ($action =~ m/$ACTION_LOGOUT/);
+#view_logout() if ($action =~ m/ACTION_LOGOUT/);
 
 # handle about action
-print $PAGE_ABOUT->output if ($action =~ m/$ACTION_ABOUT/);
+print $PAGE_ABOUT->output if ($action =~ m/ACTION_ABOUT/);
 
-# handle login action
-view_news() if ($action =~ m/$ACTION_NEWS/);
+# handle news action
+view_news() if ($action =~ m/ACTION_NEWS/);
 
-# handle login action
-view_library() if ($action =~ m/$ACTION_LIBRARY/);
+# handle library action
+view_library() if ($action =~ m/ACTION_LIBRARY/);
 
 # handle find action
-view_find() if ($action =~ m/$ACTION_FIND/);
+view_find() if ($action =~ m/ACTION_FIND/);
 
 # handle countries action
-view_countries() if ($action =~ m/$ACTION_COUNTRIES/);
+view_countries() if ($action =~ m/ACTION_COUNTRIES/);
 
 # handle valute action
-view_valute() if ($action =~ m/$ACTION_VALUTE/);
+view_valute() if ($action =~ m/ACTION_VALUTE/);
 
 # handle info action
 view_info() if ($action =~ m/ACTION_INFO/);
 
 # handle fake action
-view_fake() if ($action =~ m/$ACTION_FAKE/);
+view_fake() if ($action =~ m/ACTION_FAKE/);
 
 # handle fake info action
 view_info_fake() if ($action =~ m/ACTION_INFO_FAKE/);
 
 # handle preview action
-view_preview() if ($action =~ m/$ACTION_PREVIEW/);
+view_preview() if ($action =~ m/ACTION_PREVIEW/);
 
 # handle preview fake action
-view_preview_fake() if ($action =~ m/$ACTION_PREVIEW_FAKE/);
+view_preview_fake() if ($action =~ m/ACTION_PREVIEW_FAKE/);
 
 # output bottom page
 view_bottom() if (needs_bottom());
@@ -195,20 +188,20 @@ sub init_session {
 
 sub view_top {
 
-    $PAGE_TOP->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
-    $PAGE_TOP->param(ACTION_ABOUT => $ACTION_ABOUT);
-    $PAGE_TOP->param(ACTION_LIBRARY => $ACTION_LIBRARY);
-    $PAGE_TOP->param(ACTION_NEWS => $ACTION_NEWS);
+    $PAGE_TOP->param(ACTION_COUNTRIES => ACTION_COUNTRIES);
+    $PAGE_TOP->param(ACTION_ABOUT => ACTION_ABOUT);
+    $PAGE_TOP->param(ACTION_LIBRARY => ACTION_LIBRARY);
+    $PAGE_TOP->param(ACTION_NEWS => ACTION_NEWS);
 
     print $PAGE_TOP->output;
 }
 
 sub view_bottom {
 
-    $PAGE_BOTTOM->param(ACTION_ABOUT => $ACTION_ABOUT);
-    $PAGE_BOTTOM->param(ACTION_LIBRARY => $ACTION_LIBRARY);
-    $PAGE_BOTTOM->param(ACTION_NEWS => $ACTION_NEWS);
-    $PAGE_BOTTOM->param(ACTION_LOGIN => $ACTION_LOGIN);
+    $PAGE_BOTTOM->param(ACTION_ABOUT => ACTION_ABOUT);
+    $PAGE_BOTTOM->param(ACTION_LIBRARY => ACTION_LIBRARY);
+    $PAGE_BOTTOM->param(ACTION_NEWS => ACTION_NEWS);
+    $PAGE_BOTTOM->param(ACTION_LOGIN => ACTION_LOGIN);
     $PAGE_BOTTOM->param(ACTION_LABEL => $client);
     $PAGE_BOTTOM->param(MESSAGE => $message);
 
@@ -273,7 +266,7 @@ sub view_top_small {
     foreach my $result ( @$results ) {
         my $BCODEVAL = $result->{BCODEVAL};
         my $COUNTRY  = $result->{COUNTRY};
-        my $stropt = "\"/cgi-bin/bnotes/bnotes?action=$ACTION_COUNTRIES\&amp;cid=$BCODEVAL\"";
+        my $stropt = "\"/cgi-bin/bnotes/bnotes?action=ACTION_COUNTRIES\&amp;cid=$BCODEVAL\"";
         
         my $option = "<option %SELECTED% value=$stropt>$BCODEVAL - $COUNTRY</option>\n";
         if ($BCODEVAL eq uc($cid)) {
@@ -286,7 +279,7 @@ sub view_top_small {
     }
 
     $PAGE_TOP_SMALL->param(OPTIONS => $buf);
-    $PAGE_TOP_SMALL->param(ACTION_FIND => $ACTION_FIND);
+    $PAGE_TOP_SMALL->param(ACTION_FIND => ACTION_FIND);
 
     print $PAGE_TOP_SMALL->output;
 
@@ -294,7 +287,7 @@ sub view_top_small {
 
 sub view_login {
 
-    $PAGE_LOGIN->param(ACTION_COUNTRIES => $ACTION_COUNTRIES);
+    $PAGE_LOGIN->param(ACTION_COUNTRIES => ACTION_COUNTRIES);
     #$PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
     $PAGE_LOGIN->param(FPWEMAIL => "kaloyansen\@gmail.com");
     print $PAGE_LOGIN->output;
@@ -326,7 +319,7 @@ sub view_find {
             COINNAME  => $result->{COINNAME},
             EBANKNAME => $result->{EBANKNAME},
             MINFO     => $minfo,
-            ACTION_COUNTRIES => $ACTION_COUNTRIES
+            ACTION_COUNTRIES => ACTION_COUNTRIES
             );
 
         push(@loop1, \%row);
@@ -370,7 +363,7 @@ sub view_countries {
                       BCODE    => $result->{BCODE},
                       EMISSION => $result->{EMISSION},
                       SVERSION => $result->{SVERSION},
-                      ACTION_VALUTE => $ACTION_VALUTE,
+                      ACTION_VALUTE => ACTION_VALUTE,
                       YSIMG    => $ysimg,
                       YSTOPPED => $ystopped,
                       BFALSE   => $bfalse
@@ -438,7 +431,7 @@ sub view_valute {
                 COUNTRY   => $cid,
                 NUMB      => $result->{NUMB},
                 NUMBF     => $result->{NUMBF},
-                ACTION_FAKE => $ACTION_FAKE,
+                ACTION_FAKE => ACTION_FAKE,
                 NAMEFALSE => $result->{NAMEFALSE}
         	);
 
@@ -523,7 +516,7 @@ sub view_valute {
     $PAGE_VALUTE->param(MADDINFO => $maddinfo);
     $PAGE_VALUTE->param(MUVINFO => $muvinfo);
 
-    $PAGE_VALUTE->param(ACTION_PREVIEW => $ACTION_PREVIEW);
+    $PAGE_VALUTE->param(ACTION_PREVIEW => ACTION_PREVIEW);
 
     print $PAGE_VALUTE->output;
 
@@ -641,7 +634,7 @@ sub view_fake {
     $PAGE_FAKE->param(NAMEFALSE => $results4->{NAMEFALSE});
 
     $PAGE_FAKE->param(ACTION_INFO_FAKE => ACTION_INFO_FAKE);
-    $PAGE_FAKE->param(ACTION_PREVIEW_FAKE => $ACTION_PREVIEW_FAKE);
+    $PAGE_FAKE->param(ACTION_PREVIEW_FAKE => ACTION_PREVIEW_FAKE);
 
     print $PAGE_FAKE->output;
 }
@@ -757,17 +750,17 @@ sub normalize_text($) {
 # returns true for actions that do not require authentication
 sub needs_top {
 
-    return 1 if ($action =~ m/$ACTION_LOGIN/ or $action =~ m/$ACTION_LOGOUT/ or
-                 $action =~ m/$ACTION_ABOUT/ or $action =~ m/$ACTION_NEWS/ or 
-                 $action =~ m/$ACTION_LIBRARY/);
+    return 1 if ($action =~ m/ACTION_LOGIN/ or $action =~ m/ACTION_LOGOUT/ or
+                 $action =~ m/ACTION_ABOUT/ or $action =~ m/ACTION_NEWS/ or 
+                 $action =~ m/ACTION_LIBRARY/);
     return 0;
 }
 
 
 sub needs_top_small {
 
-    return 1 if ( $action =~ m/$ACTION_FIND/ or $action =~ m/$ACTION_COUNTRIES/ or
-                  $action =~ m/$ACTION_VALUTE/ or $action =~ m/$ACTION_FAKE/);
+    return 1 if ( $action =~ m/ACTION_FIND/ or $action =~ m/ACTION_COUNTRIES/ or
+                  $action =~ m/ACTION_VALUTE/ or $action =~ m/ACTION_FAKE/);
     return 0;
 }
 
@@ -775,7 +768,7 @@ sub needs_bottom {
 
     return 1; # ATTENTION
     return 0 if ( $action =~ m/ACTION_INFO/ or $action =~ m/ACTION_INFO_FAKE/ or
-                  $action =~ m/$ACTION_PREVIEW/ or $action =~ m/$ACTION_PREVIEW_FAKE/);
+                  $action =~ m/ACTION_PREVIEW/ or $action =~ m/ACTION_PREVIEW_FAKE/);
 }
 
 # EOF

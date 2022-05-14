@@ -6,7 +6,6 @@ LABEL maintainer="kaloyansen@gmail.com"
 
 ARG buildno
 ARG gitcommithash
-
 RUN echo "Build number: $buildno"
 RUN echo "Based on commit: $gitcommithash"
 
@@ -17,11 +16,11 @@ RUN yum -y update
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 RUN rpm -Uvh http://rpms.remirepo.net/enterprise/remi-release-7.rpm
 
-################# software
+##################################### tools perl perl-cgi 
 RUN yum -y install httpd httpd-tools tcsh nano file perl perl-CGI perl-CGI-Session perl-DBI perl-DBD-MySQL perl-HTML-Template perl-DateTime-Format-MySQL
 # perl-JSON perl-CGI-Application perl-Crypt-RC4
 
-# Install PHP
+############################################### php 
 # RUN yum -y install php php-mysqlnd php-pdo
 RUN yum --enablerepo=remi-php73 -y install php php-bcmath php-cli php-common php-gd php-intl php-ldap php-mbstring php-mysqlnd php-pdo php-pear php-soap php-xml php-xmlrpc php-zip
 # RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
@@ -33,7 +32,6 @@ RUN yum --enablerepo=remi-php73 -y install php php-bcmath php-cli php-common php
 ##################### envirenment has been gone to docker-compose.yml
 # ADD ./src/root/.tcshrc /root/.tcshrc
 # ADD ./src/root/.emacs /root/.emacs
-
 
 #################### start apache
 EXPOSE 80
