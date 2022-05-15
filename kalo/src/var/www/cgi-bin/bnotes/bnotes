@@ -7,8 +7,7 @@
 # BNOTES: User access control for BSE banknotes system                                  #
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 use strict; 
 use warnings;
 use CGI;
@@ -16,24 +15,32 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+use constant CONTACT_ADDRESS => "support\@bse.bg";
 
-use constant STATUS_LOGIN_SUCCESS => 200;
-use constant STATUS_ALREADY_IN => 300;
-use constant STATUS_BAD_INPUT => 400;
-use constant STATUS_LOGIN_FAILED => 500;
+use constant ACTION_ABOUT => 'about';
+use constant ACTION_COUNTRIES => 'countries';
+use constant ACTION_FAKE => 'fake';
+use constant ACTION_FIND => 'find';
 use constant ACTION_INFO => 'info';
 use constant ACTION_INFO_FAKE => 'ifake';
-use constant ACTION_LOGIN => 'login';
-use constant ACTION_LOGOUT => 'logout';
-use constant ACTION_ABOUT => 'about';
-use constant ACTION_NEWS => 'news';
 use constant ACTION_LIBRARY => 'library';
-use constant ACTION_FIND => 'find';
-use constant ACTION_COUNTRIES => 'countries';
-use constant ACTION_VALUTE => 'valute';
-use constant ACTION_FAKE => 'fake';
+use constant ACTION_LOGIN => 'logform';
+use constant ACTION_LOGIN_SUBMIT => 'logsub';
+use constant ACTION_LOGOUT => 'logout';
+use constant ACTION_NEWS => 'news';
 use constant ACTION_PREVIEW => 'preview';
 use constant ACTION_PREVIEW_FAKE => 'pfake';
+use constant ACTION_VALUTE => 'valute';
+
+use constant STATUS_BAD_INPUT => 400;
+use constant STATUS_LOGIN_FAILED => 500;
+use constant STATUS_LOGIN_SUCCESS => 200;
+use constant STATUS_USER_IN => 330;
+use constant STATUS_USER_OUT => 340;
+
+################################################################################
+# front-end static templates
+################################################################################
 
 my $PAGE_ABOUT = HTML::Template->new(filename => 'tmpl/page_about.tmpl');
 my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom.tmpl');
@@ -58,7 +65,7 @@ my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
 # MAIN FUNCTION                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-DBH::db_connect();# connect to database
+DBH::db_connect();# powered by DBH.pm
 
 my $cgi = new CGI;# do some CGI stuff
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
@@ -66,11 +73,12 @@ my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Ses
 #my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
 
 #print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
-print $session->header();
+print $session->header(-charset => 'utf-8');
+# print $session->header();
 # print $cgi->header(-charset => 'utf-8');
 
 # import cgi variables
-my $cid = $cgi->param('cid');
+my $cid = $cgi->param('cid') // 0;
 my $bid = $cgi->param('bid');
 my $fbid = $cgi->param('fbid');
 my $fbox = $cgi->param('fbox');
@@ -82,74 +90,37 @@ my $action = $cgi->param('action') // ACTION_ABOUT;
 
 my $client = 'guest';
 my $access = 0;
-my $status = init_session();
 my $message = 'init';
+my $status = init_session();
+my $title = 'title';
 
-if ($access && &access_denied($access, $cid)) {
-
-    $message = 'access denied to '.$cid;
-    $cid = &open_cid($access);
-    if ($cid) {
-
-        $message = 'access allowed to '.$cid;
-    } else {
-
-        $message = 'no access to the database';
-    }
-} else {
-
-    ;
-}
-
+filter_cid() if ($cid && $access);
 
 # output top page 
-view_top() if (needs_top());
-view_top_small() if (needs_top_small());
+my $has_top = 1;
+if (needs_top()) { view_top();
+} elsif (needs_top_small()) { view_top_small();
+} else { $has_top = 0; }
 
-# handle login action
-view_login() if ($action =~ m/ACTION_LOGIN/);
+view_login(ACTION_LOGIN_SUBMIT) if ($action =~ ACTION_LOGIN);
+login() if ($action =~ ACTION_LOGIN_SUBMIT);
 
-# handle logout action
-#view_logout() if ($action =~ m/ACTION_LOGOUT/);
+logout() if ($action =~ ACTION_LOGOUT);
+view_about() if ($action =~ ACTION_ABOUT);
+view_news() if ($action =~ ACTION_NEWS);
+view_library() if ($action =~ ACTION_LIBRARY);
+view_find() if ($action =~ ACTION_FIND);
+view_countries() if ($action =~ ACTION_COUNTRIES);
+view_valute() if ($action =~ ACTION_VALUTE);
+view_info() if ($action =~ ACTION_INFO);
+view_fake() if ($action =~ ACTION_FAKE);
+view_info_fake() if ($action =~ ACTION_INFO_FAKE);
+view_preview() if ($action =~ ACTION_PREVIEW);
+view_preview_fake() if ($action =~ ACTION_PREVIEW_FAKE);
 
-# handle about action
-print $PAGE_ABOUT->output if ($action =~ m/ACTION_ABOUT/);
+my $has_bottom = $has_top ? view_bottom() : 0;
 
-# handle news action
-view_news() if ($action =~ m/ACTION_NEWS/);
-
-# handle library action
-view_library() if ($action =~ m/ACTION_LIBRARY/);
-
-# handle find action
-view_find() if ($action =~ m/ACTION_FIND/);
-
-# handle countries action
-view_countries() if ($action =~ m/ACTION_COUNTRIES/);
-
-# handle valute action
-view_valute() if ($action =~ m/ACTION_VALUTE/);
-
-# handle info action
-view_info() if ($action =~ m/ACTION_INFO/);
-
-# handle fake action
-view_fake() if ($action =~ m/ACTION_FAKE/);
-
-# handle fake info action
-view_info_fake() if ($action =~ m/ACTION_INFO_FAKE/);
-
-# handle preview action
-view_preview() if ($action =~ m/ACTION_PREVIEW/);
-
-# handle preview fake action
-view_preview_fake() if ($action =~ m/ACTION_PREVIEW_FAKE/);
-
-# output bottom page
-view_bottom() if (needs_bottom());
-
-# disconnect from database
-DBH::db_disconnect();
+DBH::db_disconnect();# disconnect database
 
 exit 1;
 
@@ -158,32 +129,12 @@ exit 1;
 # UTILITY FUNCTIONS
 ################################################################################
 
-sub init_session {
+sub view_login {
 
-    if ($session->param("~logged-in")) {
-        # if logged in, don't bother going further
-        $client = $session->param("~user");
-        $access = $session->param("~access");
-        
-        return STATUS_ALREADY_IN;
-    }
-
-    my $user = $cgi->param('user') or return STATUS_BAD_INPUT;
-    my $pass = $cgi->param('password') or return STATUS_BAD_INPUT;
-
-    # user did submit the login form so let's try to load her/his/its profile if name/pass match
-    my $resultat = DBH::auth_user($user, $pass);
-    if ($resultat < 0) { # login failed
-
-        return STATUS_LOGIN_FAILED; # login failed
-    } else {
-        $session->expire(DBH::SESSION_EXPIRATION);
-        $session->param("~user", $user);
-        $session->param("~logged-in", 1);
-        $session->param("~access", $resultat);
-
-        return STATUS_LOGIN_SUCCESS;
-    }
+    my $action = shift;
+    $PAGE_LOGIN->param(ACTION => $action);
+    $PAGE_LOGIN->param(FPWEMAIL => CONTACT_ADDRESS);
+    print $PAGE_LOGIN->output;
 }
 
 sub view_top {
@@ -198,68 +149,30 @@ sub view_top {
 
 sub view_bottom {
 
-    $PAGE_BOTTOM->param(ACTION_ABOUT => ACTION_ABOUT);
+    my $action = ACTION_LOGOUT;
+    my $label = $client;
+
+    if ($client eq 'guest') {
+
+        $action = ACTION_LOGIN;
+        $label = 'Sign In';
+    }
+
     $PAGE_BOTTOM->param(ACTION_LIBRARY => ACTION_LIBRARY);
+    $PAGE_BOTTOM->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_BOTTOM->param(ACTION_NEWS => ACTION_NEWS);
-    $PAGE_BOTTOM->param(ACTION_LOGIN => ACTION_LOGIN);
-    $PAGE_BOTTOM->param(ACTION_LABEL => $client);
+    $PAGE_BOTTOM->param(ACTION_LABEL => $label);
+    $PAGE_BOTTOM->param(ACTION_LOG => $action);
     $PAGE_BOTTOM->param(MESSAGE => $message);
 
     print $PAGE_BOTTOM->output;
-}
-
-sub access_denied($$) {
-
-    my ($droit, $clef) = @_;
-
-    if (!$clef) {                       return 0; }
-    if ($droit & DBH::control($clef)) { return 0; }
-    else {                              return 1; }
-}
-
-sub open_cid($) {
-
-    my $droit = shift;
-
-    my %code = DBH::control('all');
-    while( my ($clef, $value) = each(%code) ) {
-
-        if ($droit & $value) {
-
-            return $clef;
-        }
-    }
-
-    return 0;
-}
-
-sub where_from_access($) {
-
-    my $droit = shift;
-
-    my $where = 0;
-    my %code = DBH::control('all');
-    while( my ($clef, $value) = each(%code) ) {
-#    foreach my $clef (keys(DBH::control('all'))) {
-        if ($droit & $value) {
-
-            if ($where) {
-
-                $where = "$where OR BCODEVAL LIKE \"$clef\"";
-            } else {
-
-                $where = "WHERE BCODEVAL LIKE \"$clef\"";
-            }    
-        }
-    }
-
-    return $where;
+    
+    return 1;
 }
 
 sub view_top_small {
 
-    my $where = where_from_access($access);
-    $where = '';
+    my $where = sql_access_filter($access);
     my $results = DBH::db_select("SELECT * FROM COUNTRY $where ORDER BY BCODEVAL");
     my $buf;
 
@@ -282,22 +195,6 @@ sub view_top_small {
     $PAGE_TOP_SMALL->param(ACTION_FIND => ACTION_FIND);
 
     print $PAGE_TOP_SMALL->output;
-
-}
-
-sub view_login {
-
-    $PAGE_LOGIN->param(ACTION_COUNTRIES => ACTION_COUNTRIES);
-    #$PAGE_LOGIN->param(FPWEMAIL => "support\@bse.bg");
-    $PAGE_LOGIN->param(FPWEMAIL => "kaloyansen\@gmail.com");
-    print $PAGE_LOGIN->output;
-
-}
-
-sub view_logout {
-
-    &destroy_session();
-    view_msg("LOG OUT", "YOU HAVE SUCCESSFULLY LOGGED OUT OF THE SYSTEM!");
 
 }
 
@@ -329,7 +226,6 @@ sub view_find {
     $PAGE_FIND->param(STRFIND => $strfind);
 
     print $PAGE_FIND->output;
-
 }
 
 sub view_countries {
@@ -338,6 +234,7 @@ sub view_countries {
     my $results2 = DBH::db_select_row("SELECT * FROM COUNTRY WHERE BCODEVAL = \'$cid\'");
 
     my @v_loop;
+
     foreach my $result ( @$results1 ) {
 
         my $bfalse = "";
@@ -374,7 +271,6 @@ sub view_countries {
 
     my $minfo = normalize_text($results2->{MINFO});
     #$minfo =~ s/%NL%/<br \/>/g;
-
     $PAGE_COUNTRIES->param(valutes_loop => \@v_loop);
     $PAGE_COUNTRIES->param(COUNTRY_CODE => lc($cid));
     $PAGE_COUNTRIES->param(COUNTRY_NAME => $results2->{COUNTRY});
@@ -444,7 +340,6 @@ sub view_valute {
     my @front_loop;
     my @back_loop;
     foreach my $result ( @$results4 ) {
-
         # [14:55:28] Рени Бъчварова: при резолюция 600 х 800 - размер 460 х 225
         # [14:55:51] Рени Бъчварова: при резолюция 1024 х 768 - размер 607 х 300
 
@@ -455,7 +350,6 @@ sub view_valute {
 
             my $xf = $result->{XF}*$cx if ($result->{XF} > 0);
             my $yf = $result->{YF}*$cy if ($result->{YF} > 0);
-
             my %f_row = (
                 COUNTRY  => $cid,
                 IDX      => $fidx++,
@@ -475,7 +369,6 @@ sub view_valute {
 
             my $xb = $result->{XB}*$cx if ($result->{XB} > 0);
             my $yb = $result->{YB}*$cy if ($result->{YB} > 0);
-
             my %b_row = (
                 COUNTRY  => $cid,
                 IDX      => $bidx++,
@@ -495,9 +388,7 @@ sub view_valute {
 
     # do some additional data adjasments
     my $minfo = normalize_text($results3->{MINFO});
-
     my $maddinfo = normalize_text($results3->{MADDINFO});
-
     my $muvinfo = normalize_text($results3->{MUVINFO});
 
     $PAGE_VALUTE->param(protect_loop => \@loop1);
@@ -515,11 +406,14 @@ sub view_valute {
     $PAGE_VALUTE->param(BBACK => lc($results3->{BBACK}));
     $PAGE_VALUTE->param(MADDINFO => $maddinfo);
     $PAGE_VALUTE->param(MUVINFO => $muvinfo);
-
     $PAGE_VALUTE->param(ACTION_PREVIEW => ACTION_PREVIEW);
 
     print $PAGE_VALUTE->output;
+}
 
+sub view_about {
+
+    print $PAGE_ABOUT->output;
 }
 
 sub view_info {
@@ -543,7 +437,6 @@ sub view_info {
     $PAGE_INFO->param(PICTNAME => $pictname);
 
     print $PAGE_INFO->output;
-
 }
 
 sub view_fake {
@@ -681,7 +574,6 @@ sub view_preview {
     $PAGE_PREVIEW->param(COUNTRY => lc($results1->{BCODE}));
 
     print $PAGE_PREVIEW->output;
-
 }
 
 sub view_preview_fake {
@@ -705,7 +597,6 @@ sub view_news {
     $PAGE_NEWS->param(NEWS => $msg);
 
     print $PAGE_NEWS->output;
-
 }
 
 sub view_library {
@@ -722,18 +613,26 @@ sub view_library {
     $PAGE_LIBRARY->param(FFACT => $msg);
 
     print $PAGE_LIBRARY->output;
-
 }
 
 sub view_msg($$) {
 
-    my ($title, $msg) = @_;
+    my ($mitle, $msg) = @_;
 
-    $PAGE_MSG->param(TITLE => $title);
+    $PAGE_MSG->param(ACTION => ACTION_ABOUT);
+    $PAGE_MSG->param(TITLE => $mitle);
     $PAGE_MSG->param(MESSAGE => $msg);
 
     print $PAGE_MSG->output;
+}
 
+sub view_message {
+
+    $PAGE_MSG->param(ACTION => ACTION_ABOUT);
+    $PAGE_MSG->param(TITLE => $title);
+    $PAGE_MSG->param(MESSAGE => $message);
+
+    print $PAGE_MSG->output;
 }
 
 sub normalize_text($) {
@@ -750,25 +649,142 @@ sub normalize_text($) {
 # returns true for actions that do not require authentication
 sub needs_top {
 
-    return 1 if ($action =~ m/ACTION_LOGIN/ or $action =~ m/ACTION_LOGOUT/ or
-                 $action =~ m/ACTION_ABOUT/ or $action =~ m/ACTION_NEWS/ or 
-                 $action =~ m/ACTION_LIBRARY/);
+    return 1 if $action =~ ACTION_ABOUT;
+    return 1 if ($action =~ ACTION_LOGIN or $action =~ ACTION_LOGOUT);
+    return 1 if ($action =~ ACTION_NEWS or $action =~ ACTION_LIBRARY);
     return 0;
 }
 
 
 sub needs_top_small {
 
-    return 1 if ( $action =~ m/ACTION_FIND/ or $action =~ m/ACTION_COUNTRIES/ or
-                  $action =~ m/ACTION_VALUTE/ or $action =~ m/ACTION_FAKE/);
+    return 1 if ($action =~ ACTION_FIND or $action =~ ACTION_COUNTRIES);
+    return 1 if ($action =~ ACTION_VALUTE or $action =~ ACTION_FAKE);
     return 0;
 }
 
 sub needs_bottom {
 
-    return 1; # ATTENTION
-    return 0 if ( $action =~ m/ACTION_INFO/ or $action =~ m/ACTION_INFO_FAKE/ or
-                  $action =~ m/ACTION_PREVIEW/ or $action =~ m/ACTION_PREVIEW_FAKE/);
+    return needs_top() || needs_top_small() ? 1 : 0;
 }
+
+sub needs_bottom_complicated {
+
+    return 0 if ($action =~ ACTION_INFO or $action =~ ACTION_INFO_FAKE);
+    return 0 if ($action =~ ACTION_PREVIEW or $action =~ ACTION_PREVIEW_FAKE);
+    return 1;
+}
+
+sub filter_cid {
+
+    if (access_denied($access, $cid)) {
+
+        $cid = open_cid($access);
+    }
+}
+
+sub access_denied($$) {
+
+    my ($droit, $clef) = @_;
+
+    if (!$clef) {                       return 0; }
+    if ($droit & DBH::control($clef)) { return 0; }
+    else {                              return 1; }
+}
+
+sub open_cid {
+
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
+
+        if ($access & $value) {
+
+            return $clef;
+        }
+    }
+
+    return 0;
+}
+
+sub sql_access_filter($) {
+
+    my $droit = shift;
+
+    my $where = '';
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
+#    foreach my $clef (keys(DBH::control('all'))) {
+        if ($droit & $value) {
+
+            if ($where) {
+
+                $where = "$where OR BCODEVAL LIKE \"$clef\"";
+            } else {
+
+                $where = "WHERE BCODEVAL LIKE \"$clef\"";
+            }    
+        }
+    }
+
+    return $where;
+}
+
+sub init_session {
+
+    if ($session->param("~logged-in")) {
+        # if logged in, don't bother going further
+        $client = $session->param("~user");
+        $access = $session->param("~access");
+        
+        return STATUS_USER_IN;
+    }
+
+    return STATUS_USER_OUT;
+}
+
+sub logout {
+
+    &destroy_session();
+    view_msg("LOG OUT", "$client HAS SUCCESSFULLY LOGGED OUT THE SYSTEM!");
+}
+
+sub login {
+
+    if (init_session() == STATUS_USER_IN) {
+        return STATUS_USER_IN;
+    }
+    
+    my $title = "LOG IN";
+    $message = "LOGIN FAILED - TRY AGAIN OR CONTACT ADMINISTRATOR AT ".CONTACT_ADDRESS;
+
+    my $user = $cgi->param('user') // 0;
+    my $pass = $cgi->param('password') // 0;
+    
+    if (!$user || !$pass) {
+
+        view_message();
+        return STATUS_BAD_INPUT;
+    }
+
+    my $result = DBH::auth_user($user, $pass);
+    if ($result < 0) { # login failed
+
+        view_message();
+        return STATUS_LOGIN_FAILED;
+    } else { # load user profile if name/pass match
+
+        $session->expire(DBH::SESSION_EXPIRATION);
+        $session->param("~user", $user);
+        $session->param("~logged-in", 1);
+        $session->param("~access", $result);
+
+        $client = $user;
+        $access = $result;
+        $message = "$client HAS SUCCESSFULLY LOGGED IN THE SYSTEM";
+        view_message();
+        return STATUS_LOGIN_SUCCESS;
+    }
+}
+
 
 # EOF

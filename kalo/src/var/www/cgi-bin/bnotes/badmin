@@ -8,7 +8,6 @@
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
 use strict; 
 use warnings;
 use CGI;
@@ -17,36 +16,35 @@ use Socket;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+use constant ACTION_LOGIN => '_login';
+use constant ACTION_LOGOUT => '_logout';
+use constant ACTION_USER_PASSWORD => 'modify';
+use constant ACTION_USER_ACCESS => 'save';
+use constant ACTION_USER_DELETE => 'delete';
+use constant ACTION_USER_CREATE => 'create';
+use constant ACTION_USER_DETAIL => 'detail';
+use constant ACTION_USER_TABLE => 'table';
+use constant ACTION_DBUPDATE => '_dbupform';
+use constant ACTION_DBUPDATE_SUBMIT => '_dbupsub';
+use constant ACTION_FUPDATE => '_flupdate';
+use constant ACTION_FUPDATE_SUBMIT => '_flupsub';
+use constant ACTION_PRODUCT => '_product';
 
-#################################################### logique
-my $ACTION_LOGIN = "_login";
-my $ACTION_LOGOUT = "_logout";
-my $ACTION_DBUPDATE = "_dbupdate";
-my $ACTION_DBUPDATE2 = "_dbupdate2";
-my $ACTION_FUPDATE = "_flupdate";
-my $ACTION_PRODUCT = "_info";
-my $ACTION_USER_TABLE = "_usertable";
 
-my $ACTION_USER_PASSWORD = "modify";
-my $ACTION_USER_ACCESS = "save";
-my $ACTION_USER_DELETE = "delete";
-my $ACTION_USER_CREATE = "create";
-my $ACTION_USER_DETAIL = "detail";
-# my $ACTION_FUPDATE2 = 12;
-# my $ACTION_USERDELDATE2 = 5;
-# my $ACTION_USERNEWDATE2 = 8;
+################################################################################
+# front-end static templates
+################################################################################
 
-####################################################### front-end
 my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top_admin.tmpl');
+my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg_admin.tmpl');
 my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login_admin.tmpl');
 my $PAGE_LOGOUT = HTML::Template->new(filename => 'tmpl/page_logout.tmpl');
-my $PAGE_DBUPDATE = HTML::Template->new(filename => 'tmpl/page_dbupdate.tmpl');
-my $PAGE_FUPDATE = HTML::Template->new(filename => 'tmpl/page_fupdate.tmpl');
 my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom_admin.tmpl');
-my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg_admin.tmpl');
+my $PAGE_FUPDATE = HTML::Template->new(filename => 'tmpl/page_fupdate.tmpl');
 my $PAGE_PRODUCT = HTML::Template->new(filename => 'tmpl/page_product_admin.tmpl');
-my $PAGE_USER_TABLE = HTML::Template->new(filename => 'tmpl/page_user_table.tmpl');
-my $PAGE_USER_DETAIL = HTML::Template->new(filename => 'tmpl/page_user_detail.tmpl');
+my $PAGE_DBUPDATE = HTML::Template->new(filename => 'tmpl/page_dbupdate.tmpl');
+my $PAGE_TABLE = HTML::Template->new(filename => 'tmpl/page_table.tmpl');
+my $PAGE_USER = HTML::Template->new(filename => 'tmpl/page_user.tmpl');
 # my $PAGE_USERS = HTML::Template->new(filename => 'tmpl/page_users_admin.tmpl');
 
 
@@ -54,12 +52,9 @@ my $PAGE_USER_DETAIL = HTML::Template->new(filename => 'tmpl/page_user_detail.tm
 # MAIN FUNCTION                                                                
 ################################################################################
 
-# connect to database
-DBH::db_connect();
+DBH::db_connect(); # powered by DBH.pm
 
-# Limit upload to 20MB
-$CGI::POST_MAX = 1024 * 20000;
-
+$CGI::POST_MAX = 1024 * 20000; # Limit upload to 20MB
 my $cgi = new CGI;
 #my $session = new CGI::Session("serializer:freezethaw", $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
@@ -69,15 +64,14 @@ my $cookie = $cgi->cookie(CGISESSID => $session->id );
 print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
 #print $session->header();
 # import cgi variables
-my $action = $cgi->param('action');
-$action = $action ? $action : $ACTION_USER_TABLE;
+my $action = $cgi->param('action') // ACTION_USER_TABLE;
 
 my $message = "Please, make sure there aren't any users working with the software before performing update!";
 my $title = "SYSTEM ADMINISTRATION";
-$title = "ACCESS LEVEL ADMINISTRATION" if ($action =~ m/$ACTION_USER_TABLE/);
-$title = "USER DETAIL ADMINISTRATION" if ($action =~ m/$ACTION_USER_DETAIL/);
+$title = "ACCESS LEVEL ADMINISTRATION" if ($action =~ ACTION_USER_TABLE);
+$title = "USER DETAIL ADMINISTRATION" if ($action =~ ACTION_USER_DETAIL);
 
-if ($action !~ m/$ACTION_LOGIN/ && !init_supersession()) {
+if ($action !~ ACTION_LOGIN && !init_supersession()) {
 
     view_top();
     &view_msg("SUPER ACCESS DENIED", "INVALID NAME, PASSWORD OR ACCESS LEVEL!");
@@ -87,46 +81,34 @@ if ($action !~ m/$ACTION_LOGIN/ && !init_supersession()) {
 
 # make sure user gets the login page if unauthrozied
 if (!$session->param("~logged-in")) {
+
     $session->delete();
-    $action = $ACTION_LOGIN;
+    $action = ACTION_LOGIN;
 }
 
-# output top page
 view_top();
 
-# handle login action
-print $PAGE_LOGIN->output  if ($action =~ m/$ACTION_LOGIN/);
+view_login(ACTION_PRODUCT) if ($action =~ ACTION_LOGIN);
+view_logout() if ($action =~ ACTION_LOGOUT);
 
-# handle logout action
-&view_logout() if ($action =~ m/$ACTION_LOGOUT/);
+view_dbupdate(ACTION_DBUPDATE_SUBMIT) if ($action =~ ACTION_DBUPDATE);
+dbupdate() if ($action =~ ACTION_DBUPDATE_SUBMIT);
 
-# handle db update action
-print $PAGE_DBUPDATE->output if ($action =~ m/$ACTION_DBUPDATE/);
+view_fupdate(ACTION_FUPDATE_SUBMIT) if ($action =~ ACTION_FUPDATE);
+fupdate() if ($action =~ ACTION_FUPDATE_SUBMIT);
 
-# handle file update action
-print $PAGE_FUPDATE->output if ($action =~ m/$ACTION_FUPDATE/);
+view_product() if ($action =~ ACTION_PRODUCT);
+view_table() if ($action =~ ACTION_USER_TABLE);
+#view_user(1) if ($action =~ ACTION_USER_DETAIL);
+view_user(0) && view_user(1) if ($action =~ ACTION_USER_DETAIL);
+update_user_access() if ($action =~ ACTION_USER_ACCESS);
+update_user_password() if ($action =~ ACTION_USER_PASSWORD);
+create_user() if ($action =~ ACTION_USER_CREATE);
+delete_user() if ($action =~ ACTION_USER_DELETE);
 
-dbupdate() if ($action =~ m/$ACTION_DBUPDATE2/);
-
-# handle product action
-view_product() if ($action =~ m/$ACTION_PRODUCT/);
-
-# handle user view
-view_user_table() if ($action =~ m/$ACTION_USER_TABLE/);
-&view_user_detail(1) if ($action =~ m/$ACTION_USER_DETAIL/);
-&view_user_detail(0) if ($action =~ m/$ACTION_USER_DETAIL/);
-
-# handle user crud
-update_user_access() if ($action =~ m/$ACTION_USER_ACCESS/);
-update_user_password()  if ($action =~ m/$ACTION_USER_PASSWORD/);
-create_user()  if ($action =~ m/$ACTION_USER_CREATE/);
-delete_user()  if ($action =~ m/$ACTION_USER_DELETE/);
-
-# output bottom page
 view_bottom();
 
-# disconnect from database
-DBH::db_disconnect();
+DBH::db_disconnect();# disconnect from database
 
 exit 1;
 
@@ -173,13 +155,20 @@ sub auth_user_deprecated($$) {
     }
 }
 
+sub view_login($) {
+
+    $action = shift;
+    $PAGE_LOGIN->param(ACTION => $action);
+    print $PAGE_LOGIN->output;
+}
+
 sub view_top {
 
-    $PAGE_TOP->param(ACTION_LOGOUT => $ACTION_LOGOUT);
-    $PAGE_TOP->param(ACTION_DBUPDATE => $ACTION_DBUPDATE);
-    $PAGE_TOP->param(ACTION_FUPDATE => $ACTION_FUPDATE);
-    $PAGE_TOP->param(ACTION_USERS => $ACTION_USER_TABLE);
-    $PAGE_TOP->param(ACTION_PRODUCT => $ACTION_PRODUCT);
+    $PAGE_TOP->param(ACTION_LOGOUT => ACTION_LOGOUT);
+    $PAGE_TOP->param(ACTION_DBUPDATE => ACTION_DBUPDATE);
+    $PAGE_TOP->param(ACTION_FUPDATE => ACTION_FUPDATE);
+    $PAGE_TOP->param(ACTION_USERS => ACTION_USER_TABLE);
+    $PAGE_TOP->param(ACTION_PRODUCT => ACTION_PRODUCT);
     $PAGE_TOP->param(TITLE => $title);
 
     print $PAGE_TOP->output;
@@ -221,30 +210,30 @@ sub view_product {
 
 }
 
-sub view_user_detail($) {
+sub view_user($) {
 
     my $option = shift // 1;
     my $user = $cgi->param('user');
-    my $action = $ACTION_USER_PASSWORD;
+    my $action = ACTION_USER_PASSWORD;
     my $message = 'modify user password';
     my $usereadonly = 'readonly';
     if ($option == 0) {
         $user = '';
-        $action = $ACTION_USER_CREATE;
+        $action = ACTION_USER_CREATE;
         $message = 'create new user';
         $usereadonly = '';
     }
 
-    $PAGE_USER_DETAIL->param(MESSAGE => $message);
-    $PAGE_USER_DETAIL->param(USER => $user);
-    $PAGE_USER_DETAIL->param(USEREADONLY => $usereadonly);
-    $PAGE_USER_DETAIL->param(PASSWORD => '');
-    $PAGE_USER_DETAIL->param(ACTION => $action);
+    $PAGE_USER->param(MESSAGE => $message);
+    $PAGE_USER->param(USER => $user);
+    $PAGE_USER->param(USEREADONLY => $usereadonly);
+    $PAGE_USER->param(PASSWORD => '');
+    $PAGE_USER->param(ACTION => $action);
 
-    print $PAGE_USER_DETAIL->output;
+    print $PAGE_USER->output;
 }
 
-sub view_user_table {
+sub view_table {
 
     my $user_data = DBH::db_select("SELECT * FROM USERS");
 
@@ -270,22 +259,27 @@ sub view_user_table {
             ADGBP    => $admin & DBH::control('GBP') ? "checked" : "",
             ADNOK    => $admin & DBH::control('NOK') ? "checked" : "",
             ADRUB    => $admin & DBH::control('RUB') ? "checked" : "",
+            ADB11    => $admin & DBH::control('B11') ? "checked" : "",
+            ADB12    => $admin & DBH::control('B12') ? "checked" : "",
+            ADB13    => $admin & DBH::control('B13') ? "checked" : "",
+            ADB14    => $admin & DBH::control('B14') ? "checked" : "",
+            ADFOX    => $admin & DBH::control('FOX') ? "checked" : "",
             CURRENCY => $result->{CURRENCY},
             CREATED  => $result->{CREATED},
             LOGGED   => $result->{LOGGED},
             SESSIONS => $result->{SESSIONS},
-            ACTUP    => $ACTION_USER_ACCESS,
-            ACTDEL   => $ACTION_USER_DELETE,
-            ACTDET   => $ACTION_USER_DETAIL );
+            ACTUP    => ACTION_USER_ACCESS,
+            ACTDEL   => ACTION_USER_DELETE,
+            ACTDET   => ACTION_USER_DETAIL );
 
         push(@loop1, \%row);
     }
 
-    $PAGE_USER_TABLE->param(LOOP_1 => \@loop1);
-    print $PAGE_USER_TABLE->output;
+    $PAGE_TABLE->param(LOOP_1 => \@loop1);
+    print $PAGE_TABLE->output;
 }
 
-sub view_users { # deprecated
+sub view_users_is_now_deprecated { # see view_table
 
     my $results1 = DBH::db_select("SELECT * FROM USERS");
 
@@ -307,9 +301,9 @@ sub view_users { # deprecated
         push(@loop1, \%row);
     }
 
-    $PAGE_USER_TABLE->param(LOOP_1 => \@loop1);
+    $PAGE_TABLE->param(LOOP_1 => \@loop1);
 
-    print $PAGE_USER_TABLE->output;
+    print $PAGE_TABLE->output;
 
 }
 
@@ -323,15 +317,35 @@ sub view_logout() {
     print $PAGE_LOGOUT->output;
 }
 
+sub view_fupdate($) {
+
+    my $action = shift;
+    $PAGE_FUPDATE->param(ACTION => $action);
+    print $PAGE_FUPDATE->output;
+} 
+
+sub view_dbupdate($) {
+
+    my $action = shift;
+    $PAGE_DBUPDATE->param(ACTION => $action);
+    print $PAGE_DBUPDATE->output;
+}
+
 sub save_users {
 
     my @items = param('hristo');
     foreach my $item (@items) {
-    }	
+    }   
 
 }
 
-sub dbupdate {
+sub fupdate {
+
+    # to do
+    return;
+}
+
+sub dbupdate { # we can send sql scripts to the database
 
     my $db_user = $cgi->param('user');
     my $db_passwd = $cgi->param('password');

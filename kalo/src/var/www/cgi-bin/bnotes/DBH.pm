@@ -9,7 +9,6 @@ package DBH;
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
 use strict; 
 use warnings;
 use DBI;
@@ -19,45 +18,15 @@ use constant SESSION_EXPIRATION => '+123m';
 use constant SUPERSESSION_EXPIRATION => '+123m'; #'+10m';
 use constant DATABASE_CREDIT_FILE => '/var/www/.db';
 
-my %global_access_control_mask = ();       # user access control mask
-$global_access_control_mask{ADM} = 2 ** 0; # administrator can modify users and change their access level
-$global_access_control_mask{BGN} = 2 ** 1; # lev bulgarian read access
-$global_access_control_mask{CAD} = 2 ** 2; # dollar canadian read access
-$global_access_control_mask{CHF} = 2 ** 3; # frank read access
-$global_access_control_mask{DKK} = 2 ** 4; # krona read access
-$global_access_control_mask{USD} = 2 ** 5; # dollar read access
-$global_access_control_mask{TRY} = 2 ** 6; # lira read access
-$global_access_control_mask{EUR} = 2 ** 7; # euro read access
-$global_access_control_mask{GBP} = 2 ** 8; # pound read access
-$global_access_control_mask{NOK} = 2 ** 9; # kroni read access
-$global_access_control_mask{RUB} = 2 ** 10; # rubli read access
-$global_access_control_mask{B11} = 2 ** 11; # bit 11 available
-$global_access_control_mask{B11} = 2 ** 12; # bit 12 available
-$global_access_control_mask{B11} = 2 ** 13; # bit 13 available
-$global_access_control_mask{B11} = 2 ** 14; # bit 14 available
-$global_access_control_mask{FOX} = 2 ** 15; # counterfeit banknotes/faux billets/фалшиви банкноти
-
 my $debuglevel = 4;
 my $DBH = undef; 
+my %user_access_mask_definition = (); # user access control mask
 
-while (<DATA>) {
-    # process the line
-}
 
-sub database_credit_from($) {
+sub control($) {
 
-    my %data;
-
-    open(FH, '<', shift) or die $!;
-    while(<FH>) {
-        chomp;
-        my @word = split / /, $_;
-        $data{$word[0]} = $word[1];
-    }
-
-    close(FH);
- 
-    return %data;
+    my $code = shift // 'all';
+    return $code eq 'all' ? %user_access_mask_definition : $user_access_mask_definition{$code};
 }
 
 sub db_connect {
@@ -67,6 +36,7 @@ sub db_connect {
         return;
     }
 
+    %user_access_mask_definition = DBH::read_access_definition(); # user access control mask
     my %credit = database_credit_from(DATABASE_CREDIT_FILE);
 
     my $DB_DRVR = $credit{'DRVR'};
@@ -187,10 +157,20 @@ sub db_update($) {
     return $result;
 }
 
-sub control($) {
+sub database_credit_from($) {
 
-    my $code = shift // 'all';
-    return $code eq 'all' ? %global_access_control_mask : $global_access_control_mask{$code};
+    my %data;
+
+    open(FH, '<', shift) or die $!;
+    while(<FH>) {
+        chomp;
+        my @word = split / /, $_;
+        $data{$word[0]} = $word[1];
+    }
+
+    close(FH);
+ 
+    return %data;
 }
 
 sub now() {
@@ -239,10 +219,44 @@ sub auth_admin($$) {
     }
 }
 
+sub read_access_definition { # read access bit definition
+
+    my %definition = ();
+
+    while (<DATA>) {
+
+        my @word = split / /, $_;
+        if ($#word > 0 && index($word[0], '#') < 0) {
+            $definition{$word[0]} = 2 ** $word[1];
+        }
+    }
+
+    return %definition;
+}
 
 1;
 
+
 __DATA__
 
+# user access bit mask definition
+# format: name bit description
+
+ADM 0 administrator can modify users and change their access
+BGN 1 lev bulgarian read access
+CAD 2 dollar canadian read access
+CHF 3 frank read access
+DKK 4 krona read access
+USD 5 dollar read access
+TRY 6 lira read access
+EUR 7 euro read access
+GBP 8 pound read access
+NOK 9 kroni read access
+RUB 10 rubli read access
+B11 11 bit 11 is available
+B12 12 bit 12 is available
+B13 13 bit 13 is available
+B14 14 bit 14 is available
+FOX 15 counterfeit banknotes/faux billets/фалшиви банкноти
 
 

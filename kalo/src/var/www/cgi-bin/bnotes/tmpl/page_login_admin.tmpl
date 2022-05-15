@@ -12,11 +12,12 @@
           <tr> 
             <td width="25%" height ="40" align="right" class="conntent">&nbsp;<strong>Password:</strong></td>
             <td width="75%"><input name="password" type="password" id="password" size = "26" /></td>
-	  </tr>
+          </tr>
           <tr align="right" > 
             <td height="30" colspan="2" style="background-image:url(/bnotes/images/bg_mid.gif)">
-	      <input name="action" type="hidden" value="_info" />
-              <input name="Submit" type="submit" class="button" value="Sign In" />&nbsp;
+          <!-- input name="action" type="hidden" value="_info" />
+              <input name="Submit" type="submit" class="button" value="Sign In" / -->&nbsp;
+              <input name="action" type="submit" class="button" value="<TMPL_VAR NAME=ACTION />" />&nbsp;
             </td>
           </tr>
         </table>
