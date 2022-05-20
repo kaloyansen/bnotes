@@ -11,13 +11,15 @@ services:
         read_only: false
       - ./kalo/src/docker-entrypoint-initdb.d/1_init.sql:/docker-entrypoint-initdb.d/0_init.sql
     restart: always
-    command: --default-authentication-plugin=mysql_native_password --general-log=1 --general-log-file=/var/lib/mysql/general.log --slow-query-log=1 --slow-query-log-file=/var/lib/mysql/slow.log
+    #command: --default-authentication-plugin=mysql_native_password --general-log=1 --general-log-file=/var/lib/mysql/general.log --slow-query-log=1 --slow-query-log-file=/var/lib/mysql/slow.log
+    command: --authentication-policy=mysql_native_password --general-log=1 --general-log-file=/var/lib/mysql/general.log --slow-query-log=1 --slow-query-log-file=/var/lib/mysql/slow.log
     env_file:
       - production.env
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u root --password=rootpass || exit 1
+      # test: mysqladmin ping -h 127.0.0.1 -u root --password=rootpass || exit 1
+      test: /usr/bin/mysql --user=root --password=rootpass --execute "SHOW DATABASES;" || exit 1
       # test: cat /docker-entrypoint-initdb.d/0_init.sql || exit 1
-      interval: 30s
+      interval: 66s
       timeout: 10s
       retries: 3
       start_period: 20s
@@ -43,13 +45,17 @@ services:
 
   kalo:
     image: kalo:6.6.6
-    container_name: kalo_container
+    container_name: kalo
+    hostname: container
     build:
       context: kalo
       dockerfile: Dockerfile
       args:
         buildno: 1
         gitcommithash: cdc3b19
+        workdir: /var/www/cgi-bin/bnotes
+        expose: 80
+        ipaddress: 88.161.189.9
     ports:
       - 6:80
     volumes:

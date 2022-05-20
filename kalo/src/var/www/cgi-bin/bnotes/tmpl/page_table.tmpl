@@ -1,6 +1,5 @@
 <!-- PAGE TABLE BEGIN -->
 
-<br />
 <table width="95%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
   <tr>
     <td>
@@ -10,70 +9,80 @@
 
         <tr align="center" class="conntent">
           <td><strong>№</strong></td>
-	      <td><strong>USER</strong></td>
-          <td width="5%"><strong>LOCK</strong></td>
-          <td width="5%"><strong>ACTIVE</strong></td>
-          <td width="5%"><strong>ADMIN</strong></td>
-          <td width="5%"><strong>BGN</strong></td>
-          <td width="5%"><strong>CAD</strong></td>
-          <td width="5%"><strong>CHF</strong></td>
-          <td width="5%"><strong>DKK</strong></td>
-          <td width="5%"><strong>USD</strong></td>
-          <td width="5%"><strong>TRY</strong></td>
-          <td width="5%"><strong>EUR</strong></td>
-          <td width="5%"><strong>GBP</strong></td>
-          <td width="5%"><strong>NOK</strong></td>
-          <td width="5%"><strong>RUB</strong></td>
-          <td width="5%"><strong>B11</strong></td>
-          <td width="5%"><strong>B12</strong></td>
-          <td width="5%"><strong>B13</strong></td>
-          <td width="5%"><strong>B14</strong></td>
-          <td width="5%"><strong>FOX</strong></td>
-	      <td width="10%"><strong>CURRENCY</strong></td>
-	      <td width="20%"><strong>CREATED</strong></td>
-	      <td width="20%"><strong>LAST LOGIN</strong></td>
-	      <td width="5%"><strong>SESSION</strong></td>
-          <td width="5%"><strong>DETAIL</strong></td>
-          <td width="5%"><strong>UPDATE</strong></td>
-          <td width="5%"><strong>DELETE</strong></td>
+          <td><strong>ACTIVE</strong></td>
+          <td><strong>LOCKED</strong></td>
+          <td><strong>USER</strong></td>
+          <td><strong>code</strong></td>
+          <td><strong>ADMIN</strong></td>
+          <td><strong>BGN</strong></td>
+          <td><strong>CAD</strong></td>
+          <td><strong>CHF</strong></td>
+          <td><strong>DKK</strong></td>
+          <td><strong>USD</strong></td>
+          <td><strong>TRY</strong></td>
+          <td><strong>EUR</strong></td>
+          <td><strong>GBP</strong></td>
+          <td><strong>NOK</strong></td>
+          <td><strong>RUB</strong></td>
+          <td><strong>B11</strong></td>
+          <td><strong>B12</strong></td>
+          <td><strong>B13</strong></td>
+          <td><strong>B14</strong></td>
+          <td><strong>FOX</strong></td>
+	      <!-- td><strong>CURRENCY</strong></td -->
+	      <td><strong>CREATED</strong></td>
+	      <td><strong>LAST LOGIN</strong></td>
+	      <!-- td><strong>SESSION</strong></td -->
+          <td><strong>DETAIL</strong></td>
+          <td><strong>UPDATE</strong></td>
+          <td><strong>DELETE</strong></td>
         </tr>
 
-        <TMPL_LOOP NAME="LOOP_1">
+        <TMPL_LOOP NAME=LOOP_1 />
 
       <form action="/cgi-bin/bnotes/badmin" method="POST">
 
 	    <tr align="center" class="conntent">
-	      <td align="center"><TMPL_VAR NAME=ID></td>
-	      <td><input type="text" name="user" value="<TMPL_VAR NAME=USER>" readonly /></td>
-          <td><input type="checkbox" name="active" onclick="return false;" <TMPL_VAR NAME=ACTIVE> /></td>
-          <td><input type="checkbox" name="locked" onclick="return false;" <TMPL_VAR NAME=LOCKED> /></td>
-          <td><input type="checkbox" name="ADM" value=1 <TMPL_VAR NAME=ADMIN> />              
-          <TMPL_VAR NAME=ADROW></td>
-          <td><input type="checkbox" name="BGN" value=1 <TMPL_VAR NAME=ADBGN> /></td>
-          <td><input type="checkbox" name="CAD" value=1 <TMPL_VAR NAME=ADCAD> /></td>
-          <td><input type="checkbox" name="CHF" value=1 <TMPL_VAR NAME=ADCHF> /></td>
-          <td><input type="checkbox" name="DKK" value=1 <TMPL_VAR NAME=ADDKK> /></td>
-          <td><input type="checkbox" name="USD" value=1 <TMPL_VAR NAME=ADUSD> /></td>
-          <td><input type="checkbox" name="TRY" value=1 <TMPL_VAR NAME=ADTRY> /></td>
-          <td><input type="checkbox" name="EUR" value=1 <TMPL_VAR NAME=ADEUR> /></td>
-          <td><input type="checkbox" name="GBP" value=1 <TMPL_VAR NAME=ADGBP> /></td>
-          <td><input type="checkbox" name="NOK" value=1 <TMPL_VAR NAME=ADNOK> /></td>
-          <td><input type="checkbox" name="RUB" value=1 <TMPL_VAR NAME=ADRUB> /></td>
-          <td><input type="checkbox" name="B11" value=1 <TMPL_VAR NAME=ADB11> /></td>
-          <td><input type="checkbox" name="B12" value=1 <TMPL_VAR NAME=ADB12> /></td>
-          <td><input type="checkbox" name="B13" value=1 <TMPL_VAR NAME=ADB13> /></td>
-          <td><input type="checkbox" name="B14" value=1 <TMPL_VAR NAME=ADB14> /></td>
-          <td><input type="checkbox" name="FOX" value=1 <TMPL_VAR NAME=ADFOX> /></td>
-          <td><input type="text" name="currency" value="<TMPL_VAR NAME=CURRENCY>" size="3" class="conntent" readonly /></td>
-	      <td><TMPL_VAR NAME=CREATED></td>
-          <td><TMPL_VAR NAME=LOGGED></td>
-          <td><TMPL_VAR NAME=SESSIONS></td>
-          <td><input name="action" type="submit" value="<TMPL_VAR NAME=ACTDET>"
-          style="background-image: url('/bnotes/images/information.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
-          <td><input name="action" type="submit" value="<TMPL_VAR NAME=ACTUP>"
-          style="background-image: url('/bnotes/images/ok1.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
-          <td><input name="action" type="submit" value="<TMPL_VAR NAME=ACTDEL>"
-          style="background-image: url('/bnotes/images/delete.jpg'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+	      <td align="center"><TMPL_VAR NAME=ID /></td>
+          <td><input type="checkbox" name="active" onclick="return false;" <TMPL_VAR NAME=ACTIVE /> /></td>
+          <td><input type="checkbox" name="locked" onclick="return false;" <TMPL_VAR NAME=LOCKED /> /></td>
+          <td><input type="text" name="user" size="8" value="<TMPL_VAR NAME=USER />" readonly /></td>
+          <td><TMPL_VAR NAME=ADROW /></td>
+          <td><input type="checkbox" name="ADM" value=1 <TMPL_VAR NAME=ADMIN /> /></td>
+          <td><input type="checkbox" name="BGN" value=1 <TMPL_VAR NAME=ADBGN /> /></td>
+          <td><input type="checkbox" name="CAD" value=1 <TMPL_VAR NAME=ADCAD /> /></td>
+          <td><input type="checkbox" name="CHF" value=1 <TMPL_VAR NAME=ADCHF /> /></td>
+          <td><input type="checkbox" name="DKK" value=1 <TMPL_VAR NAME=ADDKK /> /></td>
+          <td><input type="checkbox" name="USD" value=1 <TMPL_VAR NAME=ADUSD /> /></td>
+          <td><input type="checkbox" name="TRY" value=1 <TMPL_VAR NAME=ADTRY /> /></td>
+          <td><input type="checkbox" name="EUR" value=1 <TMPL_VAR NAME=ADEUR /> /></td>
+          <td><input type="checkbox" name="GBP" value=1 <TMPL_VAR NAME=ADGBP /> /></td>
+          <td><input type="checkbox" name="NOK" value=1 <TMPL_VAR NAME=ADNOK /> /></td>
+          <td><input type="checkbox" name="RUB" value=1 <TMPL_VAR NAME=ADRUB /> /></td>
+          <td><input type="checkbox" name="B11" value=1 <TMPL_VAR NAME=ADB11 /> /></td>
+          <td><input type="checkbox" name="B12" value=1 <TMPL_VAR NAME=ADB12 /> /></td>
+          <td><input type="checkbox" name="B13" value=1 <TMPL_VAR NAME=ADB13 /> /></td>
+          <td><input type="checkbox" name="B14" value=1 <TMPL_VAR NAME=ADB14 /> /></td>
+          <td><input type="checkbox" name="FOX" value=1 <TMPL_VAR NAME=ADFOX /> /></td>
+          <!-- td><TMPL_VAR NAME=CURRENCY /></td -->
+	      <td><TMPL_VAR NAME=CREATED /></td>
+          <td><TMPL_VAR NAME=LOGGED /></td>
+          <!-- td><TMPL_VAR NAME=SESSIONS /></td -->
+          <td><input name="action"
+                     type="submit"
+                     value="<TMPL_VAR NAME=ACTDET />"
+                     title="change user password"
+                     style="background-image: url('/bnotes/images/information.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+          <td><input name="action"
+                     type="submit"
+                     value="<TMPL_VAR NAME=ACTUP />"
+                     title="save user access"
+                     style="background-image: url('/bnotes/images/ok1.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+          <td><input name="action"
+                     type="submit"
+                     value="<TMPL_VAR NAME=ACTDEL />"
+                     title="delete user"
+                     style="background-image: url('/bnotes/images/delete.jpg'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
 	      <!-- img src="/bnotes/images/delete.jpg" width="20" height="20" border="0" -->
         </tr>
 
@@ -81,9 +90,19 @@
 
       </TMPL_LOOP>
 
+      <form action="/cgi-bin/bnotes/badmin" method="GET">
+
+        <tr>
+        
+          <td><input name="action"
+                     type="submit"
+                     value="<TMPL_VAR NAME=ACTNEW />"
+                     title="create new user"
+                     style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+        </tr>
+      </form>
     </table>
 
-      <br /><br />
 
     </td>
   </tr>

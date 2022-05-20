@@ -6,8 +6,15 @@ LABEL maintainer="kaloyansen@gmail.com"
 
 ARG buildno
 ARG gitcommithash
+ARG workdir
+ARG expose
+ARG ipaddress
+
 RUN echo "Build number: $buildno"
 RUN echo "Based on commit: $gitcommithash"
+RUN echo "workdir: $workdir"
+RUN echo "expose: $expose"
+RUN echo "ipaddress: $ipaddress"
 
 ################ update
 RUN yum -y update
@@ -28,7 +35,7 @@ RUN yum --enablerepo=remi-php73 -y install php php-bcmath php-cli php-common php
 ################## apache configuration hmmm i do not like it
 # RUN sed -E -i -e '/<Directory "\/var\/www\/cgi-bin\/bnotes">/,/<\/Directory>/s/AllowOverride None/AllowOverride All/' /etc/httpd/conf/httpd.conf
 # RUN sed -E -i -e 's/DirectoryIndex (.*)$/DirectoryIndex bnotes \1/g' /etc/httpd/conf/httpd.conf
-
+RUN echo "ServerName $ipaddress" >> /etc/httpd/conf/httpd.conf
 ##################### envirenment has been gone to docker-compose.yml
 # ADD ./src/root/.tcshrc /root/.tcshrc
 # ADD ./src/root/.emacs /root/.emacs

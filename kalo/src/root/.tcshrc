@@ -207,5 +207,9 @@ a postcmd 'if ( $status ) echo -n \\033[0\;36m'
 a precmd 'if ( $status ) echo -n \\033[0\;33m'
 
 a off synclient\ touchpadoff=\!:1
+a pico nano
 
 set prompt = "%n@%B%M%b:%//"
+
+echo welcome to apache/perl/php container
+echo code by kaloyansen@gmail.com

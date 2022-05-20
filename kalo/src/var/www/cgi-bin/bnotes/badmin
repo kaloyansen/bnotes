@@ -4,7 +4,7 @@
 # Author: Hristo Grigorov <hgrigorov@gmail.com>                                         #
 # Copyright (c) 2011-2012 Busoft Engineering. All right reserved.                       #
 # ------------------------------------------------------------------------------------- #
-# badmin: back-office user crud and user access control                                 #
+# badmin: back-office create/read/update/delete user and user access control                                 #
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -18,17 +18,20 @@ use CGI::Session qw/-ip-match/;
 use HTML::Template;
 use constant ACTION_LOGIN => '_login';
 use constant ACTION_LOGOUT => '_logout';
-use constant ACTION_USER_PASSWORD => 'modify';
-use constant ACTION_USER_ACCESS => 'save';
-use constant ACTION_USER_DELETE => 'delete';
-use constant ACTION_USER_CREATE => 'create';
-use constant ACTION_USER_DETAIL => 'detail';
-use constant ACTION_USER_TABLE => 'table';
+use constant ACTION_MESSAGE => 'message';
+use constant ACTION_PASSWORD => 'modify';
+use constant ACTION_ACCESS => 'save';
+use constant ACTION_DELETE => 'delete';
+use constant ACTION_CREATE => 'new';
+use constant ACTION_CREATE_SUBMIT => 'create';
+use constant ACTION_DETAIL => 'detail';
+use constant ACTION_TABLE => 'table';
 use constant ACTION_DBUPDATE => '_dbupform';
 use constant ACTION_DBUPDATE_SUBMIT => '_dbupsub';
 use constant ACTION_FUPDATE => '_flupdate';
 use constant ACTION_FUPDATE_SUBMIT => '_flupsub';
-use constant ACTION_PRODUCT => '_product';
+use constant ACTION_PRODUCT => 'about';
+use constant ACTION_CANCEL => 'cancel';
 
 
 ################################################################################
@@ -56,39 +59,54 @@ DBH::db_connect(); # powered by DBH.pm
 
 $CGI::POST_MAX = 1024 * 20000; # Limit upload to 20MB
 my $cgi = new CGI;
-#my $session = new CGI::Session("serializer:freezethaw", $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
-my $cookie = $cgi->cookie(CGISESSID => $session->id );
+print $session->header(-charset => 'utf-8');
+
+#my $session = new CGI::Session("serializer:freezethaw", $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
 #my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
+#my $cookie = $cgi->cookie(CGISESSID => $session->id );
+#print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
 
-print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
-#print $session->header();
-# import cgi variables
-my $action = $cgi->param('action') // ACTION_USER_TABLE;
-
-my $message = "Please, make sure there aren't any users working with the software before performing update!";
+my $action = $cgi->param('action') // ACTION_LOGIN;
 my $title = "SYSTEM ADMINISTRATION";
-$title = "ACCESS LEVEL ADMINISTRATION" if ($action =~ ACTION_USER_TABLE);
-$title = "USER DETAIL ADMINISTRATION" if ($action =~ ACTION_USER_DETAIL);
+my $message = "please, make sure there aren't any users working with the software before performing update!";
+my $user = 0;
+my $color = 'black';
 
-if ($action !~ ACTION_LOGIN && !init_supersession()) {
+$title = "USER ACCESS ADMINISTRATION" if ($action =~ ACTION_TABLE);
+$title = "USER DETAIL ADMINISTRATION" if ($action =~ ACTION_DETAIL);
 
-    view_top();
-    &view_msg("SUPER ACCESS DENIED", "INVALID NAME, PASSWORD OR ACCESS LEVEL!");
+if (init_supersession()) {
+
+    if ($session->param("~logged-in")) { # allow action only if user is authorised
+
+        $user = $session->param("~user");
+        $message = "superuser: $user: $message";
+        $color = 'blue';
+        $action = $action;
+    } else { # user gets the login page if unauthorised
+        
+        $session->delete();
+
+        $title = "SUPERACCESS";
+        $message = 'login needed for superuser access';
+        $color = 'yellow';
+        $action = ACTION_LOGIN;
+    }
+} else { # user gets the error page if access is denied
+
     $session->delete();
-    exit 0;
-}
 
-# make sure user gets the login page if unauthrozied
-if (!$session->param("~logged-in")) {
-
-    $session->delete();
-    $action = ACTION_LOGIN;
+    $title = "SUPERACCESS DENIED";
+    $message = "INVALID NAME, PASSWORD OR ACCESS LEVEL!";
+    $color = 'red';
+    $action = ACTION_MESSAGE;
 }
 
 view_top();
 
-view_login(ACTION_PRODUCT) if ($action =~ ACTION_LOGIN);
+view_message() if ($action =~ ACTION_MESSAGE);
+view_login(ACTION_LOGIN) if ($action =~ ACTION_LOGIN);
 view_logout() if ($action =~ ACTION_LOGOUT);
 
 view_dbupdate(ACTION_DBUPDATE_SUBMIT) if ($action =~ ACTION_DBUPDATE);
@@ -98,13 +116,14 @@ view_fupdate(ACTION_FUPDATE_SUBMIT) if ($action =~ ACTION_FUPDATE);
 fupdate() if ($action =~ ACTION_FUPDATE_SUBMIT);
 
 view_product() if ($action =~ ACTION_PRODUCT);
-view_table() if ($action =~ ACTION_USER_TABLE);
-#view_user(1) if ($action =~ ACTION_USER_DETAIL);
-view_user(0) && view_user(1) if ($action =~ ACTION_USER_DETAIL);
-update_user_access() if ($action =~ ACTION_USER_ACCESS);
-update_user_password() if ($action =~ ACTION_USER_PASSWORD);
-create_user() if ($action =~ ACTION_USER_CREATE);
-delete_user() if ($action =~ ACTION_USER_DELETE);
+view_table() if ($action =~ ACTION_TABLE);
+view_table() if ($action =~ ACTION_CANCEL);
+view_user(0) if ($action =~ ACTION_CREATE);
+view_user(1) if ($action =~ ACTION_DETAIL);
+update_user_access() if ($action =~ ACTION_ACCESS);
+update_user_password() if ($action =~ ACTION_PASSWORD);
+create_user() if ($action =~ ACTION_CREATE_SUBMIT);
+delete_user() if ($action =~ ACTION_DELETE);
 
 view_bottom();
 
@@ -133,6 +152,8 @@ sub init_supersession {
         $session->expire(DBH::SUPERSESSION_EXPIRATION);
         $session->param("~user", $user);
         $session->param("~logged-in", 1);
+        $message = DBH::db_update_column('ACTIVE', 1, $user) ? "$user is active" : 'zero';
+        $action = ACTION_TABLE;
         return 1;
     }
 
@@ -155,7 +176,7 @@ sub auth_user_deprecated($$) {
     }
 }
 
-sub view_login($) {
+sub view_login {
 
     $action = shift;
     $PAGE_LOGIN->param(ACTION => $action);
@@ -167,7 +188,7 @@ sub view_top {
     $PAGE_TOP->param(ACTION_LOGOUT => ACTION_LOGOUT);
     $PAGE_TOP->param(ACTION_DBUPDATE => ACTION_DBUPDATE);
     $PAGE_TOP->param(ACTION_FUPDATE => ACTION_FUPDATE);
-    $PAGE_TOP->param(ACTION_USERS => ACTION_USER_TABLE);
+    $PAGE_TOP->param(ACTION_TABLE => ACTION_TABLE);
     $PAGE_TOP->param(ACTION_PRODUCT => ACTION_PRODUCT);
     $PAGE_TOP->param(TITLE => $title);
 
@@ -177,8 +198,14 @@ sub view_top {
 sub view_bottom {
 
     $PAGE_BOTTOM->param(MESSAGE => $message);
+    $PAGE_BOTTOM->param(COLOR => $color);
     print $PAGE_BOTTOM->output;
 
+}
+
+sub view_message {
+    
+    view_msg($title, $message);
 }
 
 sub view_msg($$) {
@@ -210,16 +237,18 @@ sub view_product {
 
 }
 
-sub view_user($) {
+sub view_user {
 
     my $option = shift // 1;
+
     my $user = $cgi->param('user');
-    my $action = ACTION_USER_PASSWORD;
+    my $action = ACTION_PASSWORD;
     my $message = 'modify user password';
     my $usereadonly = 'readonly';
-    if ($option == 0) {
+
+    if ($option == 0) { # new user
         $user = '';
-        $action = ACTION_USER_CREATE;
+        $action = ACTION_CREATE_SUBMIT;
         $message = 'create new user';
         $usereadonly = '';
     }
@@ -229,6 +258,7 @@ sub view_user($) {
     $PAGE_USER->param(USEREADONLY => $usereadonly);
     $PAGE_USER->param(PASSWORD => '');
     $PAGE_USER->param(ACTION => $action);
+    $PAGE_USER->param(CANCEL => ACTION_CANCEL);
 
     print $PAGE_USER->output;
 }
@@ -247,7 +277,7 @@ sub view_table {
             USER     => $result->{USER},
             LOCKED   => $result->{LOCKED} ? "checked" : "",
             ACTIVE   => $result->{ACTIVE} ? "checked" : "",
-            ADROW    => $admin, # ? "checked" : "",
+            ADROW    => $admin,
             ADMIN    => $admin & DBH::control('ADM') ? "checked" : "",
             ADBGN    => $admin & DBH::control('BGN') ? "checked" : "",
             ADCAD    => $admin & DBH::control('CAD') ? "checked" : "",
@@ -268,14 +298,15 @@ sub view_table {
             CREATED  => $result->{CREATED},
             LOGGED   => $result->{LOGGED},
             SESSIONS => $result->{SESSIONS},
-            ACTUP    => ACTION_USER_ACCESS,
-            ACTDEL   => ACTION_USER_DELETE,
-            ACTDET   => ACTION_USER_DETAIL );
+            ACTUP    => ACTION_ACCESS,
+            ACTDEL   => ACTION_DELETE,
+            ACTDET   => ACTION_DETAIL );
 
         push(@loop1, \%row);
     }
 
     $PAGE_TABLE->param(LOOP_1 => \@loop1);
+    $PAGE_TABLE->param(ACTNEW => ACTION_CREATE);
     print $PAGE_TABLE->output;
 }
 
@@ -307,7 +338,7 @@ sub view_users_is_now_deprecated { # see view_table
 
 }
 
-sub view_logout() {
+sub view_logout {
 
     my $user = $session->param("~user");
     $session->delete();
@@ -317,14 +348,14 @@ sub view_logout() {
     print $PAGE_LOGOUT->output;
 }
 
-sub view_fupdate($) {
+sub view_fupdate {
 
     my $action = shift;
     $PAGE_FUPDATE->param(ACTION => $action);
     print $PAGE_FUPDATE->output;
 } 
 
-sub view_dbupdate($) {
+sub view_dbupdate {
 
     my $action = shift;
     $PAGE_DBUPDATE->param(ACTION => $action);
@@ -370,7 +401,10 @@ sub dbupdate { # we can send sql scripts to the database
 
     unlink("$update_file");
 
-    view_msg("UPDATE", "DATA SUCCESSFULLY UPDATED!");
+    $title = 'UPDATE';
+    $message = "DATA SUCCESSFULLY UPDATED!";
+    $color = 'blue';
+    view_message();
 }
 
 sub update_user_password {
@@ -379,12 +413,15 @@ sub update_user_password {
     my $pass = $cgi->param('password');    
     if ($user && $pass) {
 
-        $message = DBH::db_update("UPDATE USERS SET PASSWORD = MD5(\'$pass\') WHERE USER LIKE \'$user\'");
-        view_msg("CHANGE USER PASSWORD", "USER $user PASSWORD IS CHANGED");
+        $message = DBH::db_update("UPDATE USERS SET PASSWORD = MD5(\'$pass\') WHERE USER LIKE \'$user\'") ?
+                   "user $user password updated" : 'zero';
+        $color = 'blue';
+        view_table();
     } else {
 
         $message = 'update user password aborted - input not good - try again';
-        view_user_detail(1);        
+        $color = 'red';
+        view_user(1);        
     }
 }
 
@@ -398,8 +435,9 @@ sub update_user_access {
         $admin += $cgi->param($clef) ? $value : 0;
     }
 
-    $message = DBH::db_update_column('ADMIN', $admin, $user);
-    view_user_table();
+    $message = DBH::db_update_column('ADMIN', $admin, $user) ? "user $user access updated to $admin" : 'zero';
+    $color = 'blue';
+    view_table();
 }
 
 sub create_user {
@@ -408,12 +446,13 @@ sub create_user {
     my $pass = $cgi->param('password');
     if ($user && $pass) {
 
-        $message = DBH::db_insert($user, $pass);
-        view_user_table();
+        $message = DBH::db_insert($user, $pass) ? "user $user created" : 'zero';
+        view_table();
     } else {
 
+        $color = 'red';
         $message = 'create new user aborted - input not good - try again';
-        view_user_detail(0);
+        view_user(0);
     }
 }
 
@@ -422,12 +461,14 @@ sub delete_user {
     my $user = $cgi->param('user');
     if ($user) {
 
-        $message = DBH::db_delete($user);
+        $message = DBH::db_delete($user) ? "user $user deleted" : 'zero';
+        $color = 'blue';
     } else {
 
-        $message = 'warning: user not defined';
+        $color = 'red';
+        $message = "user $user not defined";
     }
 
-    view_user_table();
+    view_table();
 }
 

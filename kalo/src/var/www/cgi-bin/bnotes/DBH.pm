@@ -39,6 +39,9 @@ sub db_connect {
     %user_access_mask_definition = DBH::read_access_definition(); # user access control mask
     my %credit = database_credit_from(DATABASE_CREDIT_FILE);
 
+    # use constant SESSION_EXPIRATION => $credit{'SESSION_EXPIRATION'}; # '+123m';
+    # use constant SUPERSESSION_EXPIRATION => $credit{'SUPERSESSION_EXPIRATION'}; # '+123m'; #'+10m';
+
     my $DB_DRVR = $credit{'DRVR'};
     my $DB_HOST = $credit{'HOST'};
     my $DB_BASE = $credit{'BASE'};
@@ -173,7 +176,7 @@ sub database_credit_from($) {
     return %data;
 }
 
-sub now() {
+sub now {
 
     return DateTime::Format::MySQL->format_datetime(DateTime->now);
 }
@@ -200,7 +203,15 @@ sub auth_superuser($$) {
 
     my ($user, $password) = @_;
     #return DBH::auth_user($user, $password) == 1 ? 1 : 0;
-    return (DBH::auth_user($user, $password) & DBH::access_code('ADM')) ? 1 : 0;
+
+    my $check = DBH::auth_user($user, $password);
+    if ($check > 0) {    
+        if ($check & DBH::control('ADM')) {
+            return 1;
+        }
+    }
+
+    return 0;
 }    
 
 sub auth_admin($$) {
@@ -236,10 +247,10 @@ sub read_access_definition { # read access bit definition
 
 1;
 
+# user access bit mask definition
 
 __DATA__
 
-# user access bit mask definition
 # format: name bit description
 
 ADM 0 administrator can modify users and change their access

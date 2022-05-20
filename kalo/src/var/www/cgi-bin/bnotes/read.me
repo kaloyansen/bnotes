@@ -1,0 +1,27 @@
+BSE banknotes system
+Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
+================================================================================
+
+list of files:
+
+/var/www/.db                                 database connexion secret codes
+/var/www/cgi-bin/bnotes/read.me              this file
+/var/www/cgi-bin/bnotes/bnotes               front-office/user application
+/var/www/cgi-bin/bnotes/badmin               back-office/administration application
+/var/www/cgi-bin/bnotes/DBH.pm               common database access library
+/var/www/cgi-bin/bnotes/tmpl/page_*.tmpl     frontend templates
+/var/www/html/bnotes/favicon.ico             site icon
+/var/www/html/bnotes/index.shtml             link to front-office application
+/var/www/html/bnotes/main.css                css style sheet definitions
+/var/www/html/bnotes/main.js                 java script functions
+/var/www/html/bnotes/data/*                  static data
+/var/www/html/bnotes/images/*                site images
+
+notes:
+
+1. source code is written in perl
+2. comments are in english
+3. user access is stored in the database CURRENCY, USERS table, column ADMIN
+4. user access bit mask definition is available in the __DATA__ section of DBH.pm
+5. database connexion codes are stored in /var/www/.db not accessible par web
+6. 
