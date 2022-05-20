@@ -12,21 +12,23 @@ file                                         description
 /var/www/html/bnotes/images/*                site images
 /var/www/.db                                 database connexion secret codes
 /var/www/cgi-bin/bnotes/read.me              this file
-/var/www/cgi-bin/bnotes/bnotes               front-office/user application
-/var/www/cgi-bin/bnotes/badmin               back-office/administration application
+/var/www/cgi-bin/bnotes/bnotes               front-office/user application cgi script
+/var/www/cgi-bin/bnotes/badmin               back-office/administration application cgi script
 /var/www/cgi-bin/bnotes/DBH.pm               common database access library
 /var/www/cgi-bin/bnotes/tmpl/page_*.tmpl     frontend templates
 
 
 notes:
 
-0. total: six
+0. total: seven
 1. source code is written in perl
 2. comments are written in english
-3. user access is stored in the database CURRENCY, USERS table, column ADMIN
-4. access control bit mask definition is available in the __DATA__ section of DBH.pm
-5. database connexion codes are not accessible par web in /var/www/.db 
-6. session expiration time is declared constant in DBH.pm
+3. cgi (common gateway interface) differs to wsgi (web server gateway interface)
+3. cgi scripts are webpage generating programs invoked by server software that operate according to the cgi specification
+4. user access is stored in the database CURRENCY, USERS table, column ADMIN
+5. access control bit mask definition is available in the __DATA__ section of DBH.pm
+6. database connexion codes are not accessible par web in /var/www/.db 
+7. session expiration time is declared constant in DBH.pm
 
 
 
