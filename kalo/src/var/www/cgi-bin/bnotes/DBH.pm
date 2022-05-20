@@ -22,7 +22,6 @@ my $debuglevel = 4;
 my $DBH = undef; 
 my %user_access_mask_definition = (); # user access control mask
 
-
 sub control($) {
 
     my $code = shift // 'all';
