@@ -12,7 +12,7 @@
               <table width="100%" border="0" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
                 <tr align="left" >
                   <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)" class="titlewhite">
-                    &nbsp;<TMPL_VAR NAME=MESSAGE>
+                    &nbsp;<TMPL_VAR NAME=MESSAGE />
                   </td>
                 </tr>
                 <tr align="left">
@@ -20,17 +20,18 @@
                   <td><input name="user"
                              type="text"
                              size="20"
-                             value="<TMPL_VAR NAME=USER>" <TMPL_VAR NAME=USEREADONLY> /></td>
+                             class="<TMPL_VAR NAME=CLASS />"
+                             value="<TMPL_VAR NAME=USER />" <TMPL_VAR NAME=USEREADONLY /> /></td>
                   <td height ="40" class="conntent">&nbsp;<strong>Password:</strong></td>
                   <td><input name="password"
                              type="password"
                              size="21"
-                             value="<TMPL_VAR NAME=PASSWORD>" /></td>
+                             value="<TMPL_VAR NAME=PASSWORD />" /></td>
                 </tr>
                 <tr align="right" >
                   <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
-                    <input name="action" type="submit" value="<TMPL_VAR NAME=CANCEL>" />&nbsp;
-                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION>" />&nbsp;
+                    <input name="action" type="submit" value="<TMPL_VAR NAME=CANCEL />" />&nbsp;
+                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION />" />&nbsp;
                   </td>
                 </tr>
               </table>
@@ -38,7 +39,6 @@
           </tr>
         </table>
       </form>
-
     </td>
   </tr>
 </table>            

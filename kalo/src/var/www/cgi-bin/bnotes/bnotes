@@ -8,6 +8,7 @@
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 use strict; 
 use warnings;
 use CGI;
@@ -16,7 +17,6 @@ use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
 use constant CONTACT_ADDRESS => "support\@bse.bg";
-
 use constant ACTION_ABOUT => 'about';
 use constant ACTION_COUNTRIES => 'countries';
 use constant ACTION_FAKE => 'fake';
@@ -25,7 +25,7 @@ use constant ACTION_INFO => 'info';
 use constant ACTION_INFO_FAKE => 'ifake';
 use constant ACTION_LIBRARY => 'library';
 use constant ACTION_LOGIN => 'logform';
-use constant ACTION_LOGIN_SUBMIT => 'logsub';
+use constant ACTION_LOGIN_SUBMIT => 'login';
 use constant ACTION_LOGOUT => 'logout';
 use constant ACTION_NEWS => 'news';
 use constant ACTION_PREVIEW => 'preview';
@@ -51,21 +51,22 @@ my $PAGE_INFOFAKE = HTML::Template->new(filename => 'tmpl/page_info_fake.tmpl');
 my $PAGE_INFO = HTML::Template->new(filename => 'tmpl/page_info.tmpl');
 my $PAGE_LIBRARY = HTML::Template->new(filename => 'tmpl/page_library.tmpl');
 my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login.tmpl');
-my $PAGE_MAIN = HTML::Template->new(filename => 'tmpl/page_main.tmpl');
-my $PAGE_NEWS = HTML::Template->new(filename => 'tmpl/page_news.tmpl');
-my $PAGE_PREVIEW_FAKE = HTML::Template->new(filename => 'tmpl/page_preview_fake.tmpl');
-my $PAGE_PREVIEW =  HTML::Template->new(filename => 'tmpl/page_preview.tmpl');
-my $PAGE_TOP_SMALL =  HTML::Template->new(filename => 'tmpl/page_top_small.tmpl');
-my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top.tmpl');
-my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
+my $PAGE_LOGOUT = HTML::Template->new(filename => 'tmpl/page_logout.tmpl');
+# my $PAGE_MAIN = HTML::Template->new(filename => 'tmpl/page_main.tmpl');
 my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
+my $PAGE_NEWS = HTML::Template->new(filename => 'tmpl/page_news.tmpl');
+my $PAGE_PREVIEW =  HTML::Template->new(filename => 'tmpl/page_preview.tmpl');
+my $PAGE_PREVIEW_FAKE = HTML::Template->new(filename => 'tmpl/page_preview_fake.tmpl');
+my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top.tmpl');
+my $PAGE_TOP_SMALL =  HTML::Template->new(filename => 'tmpl/page_top_small.tmpl');
+my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # MAIN FUNCTION                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-DBH::db_connect();# powered by DBH.pm
+#DBH::db_connect();# powered by DBH.pm
 
 my $cgi = new CGI;# do some CGI stuff
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
@@ -88,24 +89,34 @@ my $pageid = $cgi->param('pageid');
 my $strfind = $cgi->param('textfield');
 my $action = $cgi->param('action') // ACTION_ABOUT;
 
-my $client = 'guest';
+my $client = 0;
 my $access = 0;
-my $message = 'init';
 my $status = init_session();
-my $title = 'title';
+my $title = 0;
 
-filter_cid() if ($cid && $access);
+DBH::db_connect();# powered by DBH.pm
+
+my $message = DBH::now(); #$client ? " Welcome $client" : $title;
+
+# filter_cid() if ($cid && $access);
+my $filter_bcodeval = 1; # control access par country
+my $filter_bfalse = 1; # control access counterfeit
+my $default_access = DBH::control('BGN') | DBH::control('USD');
 
 # output top page 
 my $has_top = 1;
-if (needs_top()) { view_top();
-} elsif (needs_top_small()) { view_top_small();
-} else { $has_top = 0; }
+if (needs_top()) {
+    view_top();
+} elsif (needs_top_small()) {
+    view_top_small($filter_bcodeval);
+} else {
+    $has_top = 0;
+}
 
 view_login(ACTION_LOGIN_SUBMIT) if ($action =~ ACTION_LOGIN);
 login() if ($action =~ ACTION_LOGIN_SUBMIT);
 
-logout() if ($action =~ ACTION_LOGOUT);
+view_logout() if ($action =~ ACTION_LOGOUT);
 view_about() if ($action =~ ACTION_ABOUT);
 view_news() if ($action =~ ACTION_NEWS);
 view_library() if ($action =~ ACTION_LIBRARY);
@@ -139,23 +150,36 @@ sub view_login {
 
 sub view_top {
 
+    my $action = ACTION_LOGOUT;
+    my $label = $client;
+
+    if (!$client) {
+
+        $action = ACTION_LOGIN;
+        $label = 'Sign In';
+    }
+
+
     $PAGE_TOP->param(ACTION_COUNTRIES => ACTION_COUNTRIES);
     $PAGE_TOP->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_TOP->param(ACTION_LIBRARY => ACTION_LIBRARY);
     $PAGE_TOP->param(ACTION_NEWS => ACTION_NEWS);
+    $PAGE_TOP->param(ACTION_LOG => $action);
+    $PAGE_TOP->param(LOG_LABEL => $label);
 
     print $PAGE_TOP->output;
 }
 
 sub view_bottom {
 
-    my $action = ACTION_LOGOUT;
-    my $label = $client;
+    $message = $message ? $message : '';
+    my $action = ACTION_LOGIN;
+    my $label = 'LOG IN';
+    if ($client) {
 
-    if ($client eq 'guest') {
-
-        $action = ACTION_LOGIN;
-        $label = 'Sign In';
+        $action = ACTION_LOGOUT;
+        $label = 'LOG OUT';
+        $label = $access;
     }
 
     $PAGE_BOTTOM->param(ACTION_LIBRARY => ACTION_LIBRARY);
@@ -172,14 +196,25 @@ sub view_bottom {
 
 sub view_top_small {
 
-    my $where = sql_access_filter($access);
+    my $filter = shift // 0;
+
+    my $where = '';
+    if ($filter) {
+
+        $access = $access ? $access : $access = $default_access;
+        #$access |= DBH::control('EUR');
+        # $access = DBH::control('USD') & DBH::control('EUR');
+        $where = sql_access_filter($access);
+    }
+
     my $results = DBH::db_select("SELECT * FROM COUNTRY $where ORDER BY BCODEVAL");
     my $buf;
 
     foreach my $result ( @$results ) {
         my $BCODEVAL = $result->{BCODEVAL};
         my $COUNTRY  = $result->{COUNTRY};
-        my $stropt = "\"/cgi-bin/bnotes/bnotes?action=ACTION_COUNTRIES\&amp;cid=$BCODEVAL\"";
+        my $actstr = ACTION_COUNTRIES;
+        my $stropt = "\"/cgi-bin/bnotes/bnotes?action=$actstr\&amp;cid=$BCODEVAL\"";
         
         my $option = "<option %SELECTED% value=$stropt>$BCODEVAL - $COUNTRY</option>\n";
         if ($BCODEVAL eq uc($cid)) {
@@ -238,7 +273,17 @@ sub view_countries {
     foreach my $result ( @$results1 ) {
 
         my $bfalse = "";
-        $bfalse = "2" if ($result->{BFALSE});
+        my $allow_access = 0;
+        if ($filter_bfalse) {
+            if ($access & DBH::control('FOX')) {
+                $allow_access = 1;
+            }
+        } else {
+            $allow_access = 1;
+        }
+
+        $bfalse = "2" if ($result->{BFALSE} && $allow_access);
+
 
         my $ysimg = "";
         $ysimg = "1" if ($result->{YSTOPPED} eq "");
@@ -732,7 +777,7 @@ sub sql_access_filter($) {
 sub init_session {
 
     if ($session->param("~logged-in")) {
-        # if logged in, don't bother going further
+
         $client = $session->param("~user");
         $access = $session->param("~access");
         
@@ -742,15 +787,25 @@ sub init_session {
     return STATUS_USER_OUT;
 }
 
+sub view_logout {
+
+    $session->delete();
+    DBH::db_update_column('ACTIVE', 0, $client);
+
+    $PAGE_LOGOUT->param(USER => $client);
+    print $PAGE_LOGOUT->output;
+}
+
+
 sub logout {
 
-    &destroy_session();
+    destroy_session();
     view_msg("LOG OUT", "$client HAS SUCCESSFULLY LOGGED OUT THE SYSTEM!");
 }
 
 sub login {
 
-    if (init_session() == STATUS_USER_IN) {
+    if (init_session() == STATUS_USER_IN) { # it should not happen
         return STATUS_USER_IN;
     }
     
@@ -781,7 +836,9 @@ sub login {
         $client = $user;
         $access = $result;
         $message = "$client HAS SUCCESSFULLY LOGGED IN THE SYSTEM";
+
         view_message();
+        DBH::db_update_column('ACTIVE', 1, $client);
         return STATUS_LOGIN_SUCCESS;
     }
 }

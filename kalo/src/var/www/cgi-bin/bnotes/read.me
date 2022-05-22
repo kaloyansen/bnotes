@@ -2,20 +2,50 @@ BSE banknotes system
 Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 ================================================================================
 
-file                                         description
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/var/www/html/bnotes/index.shtml             link to the user application
-/var/www/html/bnotes/main.css                css style sheet definitions
-/var/www/html/bnotes/main.js                 java script functions
-/var/www/html/bnotes/favicon.ico             site icon
-/var/www/html/bnotes/data/*                  static data
-/var/www/html/bnotes/images/*                site images
-/var/www/.db                                 database connexion secret codes
-/var/www/cgi-bin/bnotes/read.me              this file
-/var/www/cgi-bin/bnotes/bnotes               front-office/user application cgi script
-/var/www/cgi-bin/bnotes/badmin               back-office/administration application cgi script
-/var/www/cgi-bin/bnotes/DBH.pm               common database access library
-/var/www/cgi-bin/bnotes/tmpl/page_*.tmpl     frontend templates
+/path/to/file.ext                                    file description                     modification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~
+/var/www/.db                                         database connexion secret codes      *
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~
+/var/www/html/bnotes/data/*                          static data
+/var/www/html/bnotes/favicon.ico                     site icon
+/var/www/html/bnotes/images/*                        site images
+/var/www/html/bnotes/index.shtml                     link to the user application
+/var/www/html/bnotes/main.css                        css style sheet definitions          *
+/var/www/html/bnotes/main.js                         java script functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~
+/var/www/cgi-bin/bnotes/badmin                       administration cgi script            *
+/var/www/cgi-bin/bnotes/bnotes                       user application cgi script          *
+/var/www/cgi-bin/bnotes/DBH.pm                       common database access library       *
+/var/www/cgi-bin/bnotes/read.me                      this file                            *
+/var/www/cgi-bin/bnotes/tmpl/page_about.tmpl         front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_bottom.tmpl        front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_bottom_admin.tmpl  back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_confirmation.tmpl  back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_countries.tmpl     front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_dbupdate.tmpl      back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_fake.tmpl          front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_find.tmpl          front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_fupdate.tmpl       back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_info.tmpl          front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_info_fake.tmpl     front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_library.tmpl       front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_login.tmpl         front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_login_admin.tmpl   back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_logout.tmpl        office template                      *
+/var/www/cgi-bin/bnotes/tmpl/page_main.tmpl          deprecated template
+/var/www/cgi-bin/bnotes/tmpl/page_msg.tmpl           front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_msg_admin.tmpl     back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_news.tmpl          front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_preview.tmpl       front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_preview_fake.tmpl  front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_product.tmpl       back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_table.tmpl         back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_top.tmpl           front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_top_admin.tmpl     back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_top_small.tmpl     front-office template                *
+/var/www/cgi-bin/bnotes/tmpl/page_user.tmpl          back-office template                 *
+/var/www/cgi-bin/bnotes/tmpl/page_users_admin.tmpl   deprecated template
+/var/www/cgi-bin/bnotes/tmpl/page_valute.tmpl        front-office template                *
 
 
 notes:
@@ -29,6 +59,14 @@ notes:
 5. access control bit mask definition is available in the __DATA__ section of DBH.pm
 6. database connexion codes are not accessible par web in /var/www/.db 
 7. session expiration time is declared constant in DBH.pm
+
+
+superuser actions:
+
+1. create new user
+2. modify user access
+3. modify user password
+4. delete user
 
 
 

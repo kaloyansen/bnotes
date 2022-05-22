@@ -37,23 +37,25 @@
 
 <TMPL_LOOP NAME="valutes_loop">
 
-            <tr bgcolor="#FFFFFF" class="conntent" onMouseOver="tr_select(this,1);
-              document.imgfront.src = '/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE>/<TMPL_VAR NAME=BFRONT>';  
-              document.imgback.src  = '/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE>/<TMPL_VAR NAME=BBACK>';
-              "style="cursor:hand;" onMouseOut="tr_select(this,0);"
-              onClick="javascript:document.location='/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_VALUTE>&amp;bid=<TMPL_VAR NAME=NUMB>&amp;cid=<TMPL_VAR NAME=COUNTRY_CODE>'"> 
-             <td width="152">&nbsp;<b><TMPL_VAR NAME=NOMINAL></b>&nbsp;<TMPL_VAR NAME=BCODE></td>
-             <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
-             <td width="107" align="center"><strong><TMPL_VAR NAME=EMISSION> </strong></td>
-	     <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
-             <td width="101" align="center"><TMPL_VAR NAME=SVERSION></td>
-	     <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
-             <td width="177" align="center"><img src="/bnotes/images/ok<TMPL_VAR NAME=YSIMG>.gif" width="21" height="21" border="0" /></td>
- 	     <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
-             <td width="171"><strong><TMPL_VAR NAME=YSTOPPED></strong></td>
-	     <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
-             <td width="121" align="center"><img src="/bnotes/images/ok<TMPL_VAR NAME=BFALSE>.gif" width="21" height="21" border="0" /></td>
-           </tr>
+            <tr bgcolor="#FFFFFF" class="conntent"
+                onMouseOver="tr_select(this,1);
+                  document.imgfront.src = '/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE />/<TMPL_VAR NAME=BFRONT />';  
+                  document.imgback.src  = '/bnotes/data/<TMPL_VAR NAME=COUNTRY_CODE />/<TMPL_VAR NAME=BBACK />';"
+                style="cursor:hand;"
+                onMouseOut="tr_select(this,0);"
+                onClick="javascript:document.location='/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_VALUTE />&amp;bid=<TMPL_VAR NAME=NUMB />&amp;cid=<TMPL_VAR NAME=COUNTRY_CODE />'"> 
+              <td width="152">&nbsp;<b><TMPL_VAR NAME=NOMINAL /></b>&nbsp;<TMPL_VAR NAME=BCODE /></td>
+              <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
+              <td width="107" align="center"><strong><TMPL_VAR NAME=EMISSION /></strong></td>
+	          <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
+              <td width="101" align="center"><TMPL_VAR NAME=SVERSION /></td>
+	          <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
+              <td width="177" align="center"><img src="/bnotes/images/ok<TMPL_VAR NAME=YSIMG />.gif" width="21" height="21" border="0" /></td>
+ 	          <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
+              <td width="171"><strong><TMPL_VAR NAME=YSTOPPED /></strong></td>
+	          <td width="3" style="background-image:url(/bnotes/images/vline.gif)">&nbsp;</td>
+              <td width="121" align="center"><img src="/bnotes/images/ok<TMPL_VAR NAME=BFALSE />.gif" width="21" height="21" border="0" /></td>
+            </tr>
 
 </TMPL_LOOP>
 

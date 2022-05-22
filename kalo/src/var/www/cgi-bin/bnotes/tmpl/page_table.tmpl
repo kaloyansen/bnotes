@@ -44,9 +44,12 @@
 
 	    <tr align="center" class="conntent">
 	      <td align="center"><TMPL_VAR NAME=ID /></td>
-          <td><input type="checkbox" name="active" onclick="return false;" <TMPL_VAR NAME=ACTIVE /> /></td>
-          <td><input type="checkbox" name="locked" onclick="return false;" <TMPL_VAR NAME=LOCKED /> /></td>
-          <td><input type="text" name="user" size="8" value="<TMPL_VAR NAME=USER />" readonly /></td>
+          <td><input class="read" type="checkbox" name="active"
+                     onclick="return false;" <TMPL_VAR NAME=ACTIVE /> /></td>
+          <td><input class="read" type="checkbox" name="locked"
+                     onclick="return false;" <TMPL_VAR NAME=LOCKED /> /></td>
+          <td><input class="read" type="text" name="user" size="8"
+                     value="<TMPL_VAR NAME=USER />" readonly /></td>
           <td><TMPL_VAR NAME=ADROW /></td>
           <td><input type="checkbox" name="ADM" value=1 <TMPL_VAR NAME=ADMIN /> /></td>
           <td><input type="checkbox" name="BGN" value=1 <TMPL_VAR NAME=ADBGN /> /></td>
@@ -71,17 +74,17 @@
           <td><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=ACTDET />"
-                     title="change user password"
+                     title="change <TMPL_VAR NAME=USER /> password"
                      style="background-image: url('/bnotes/images/information.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
           <td><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=ACTUP />"
-                     title="save user access"
+                     title="save <TMPL_VAR NAME=USER /> access"
                      style="background-image: url('/bnotes/images/ok1.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
           <td><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=ACTDEL />"
-                     title="delete user"
+                     title="delete <TMPL_VAR NAME=USER /> forever"
                      style="background-image: url('/bnotes/images/delete.jpg'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
 	      <!-- img src="/bnotes/images/delete.jpg" width="20" height="20" border="0" -->
         </tr>

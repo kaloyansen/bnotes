@@ -3,7 +3,6 @@
   <tr>
     <td>
       <table width="100%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
-
         <tr align="left" >
           <td height="30" colspan="2" style="background-image:url(/bnotes/images/bg_mid.gif)" class="titlewhite">
             &nbsp;<TMPL_VAR NAME=TITLE>
@@ -11,15 +10,20 @@
         </tr>
 
         <tr align="center">
-          <td><br /><TMPL_VAR NAME=MESSAGE><br /><br /></td>
-        </tr>
-
-        <tr align="right" >
-          <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
-	    <input name="back" type="button" class="button" id="back" value="Отначало" onclick="window.location.href='bnotes?action=<TMPL_VAR NAME=ACTION>'" />
+          <td>
+            <br /><TMPL_VAR NAME=MESSAGE><br /><br />
           </td>
         </tr>
-
+        <tr align="right" >
+          <td height="30" colspan="4" style="background-image:url(/bnotes/images/bg_mid.gif)">
+	        <input name="back"
+	               type="button"
+	               class="button"
+	               id="back"
+	               value="Отначало"
+	               onclick="window.location.href='bnotes?action=<TMPL_VAR NAME=ACTION>'" />
+          </td>
+        </tr>
       </table>
     </td>
   </tr>

@@ -1,0 +1,42 @@
+<br />
+<table width="95%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td>
+
+      <br /><br />
+
+      <form name="confirmation" action="/cgi-bin/bnotes/badmin" method="GET">
+        <table width="66%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#666666">
+          <tr>
+            <td>
+              <table width="100%" border="0" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
+                <tr align="left" >
+                  <td style="background-image:url(/bnotes/images/bg_mid.gif)"
+                      class="titlewhite">
+                    <h1>Delete
+                    <input class="read"
+                           type="text"
+                           name="user"
+                           id="user"
+                           size="8"
+                           value="<TMPL_VAR NAME=USER />" readonly /> forever ?</h1>
+                  </td>
+                </tr>
+                <tr align="right" >
+                  <td style="background-image:url(/bnotes/images/bg_mid.gif)"
+                      class="titlewhite">
+                    <input name="action" type="submit" value="<TMPL_VAR NAME=CANCEL />" />&nbsp;
+                    <input name="action" type="submit" value="<TMPL_VAR NAME=ACTION />" />&nbsp;
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </form>
+
+    </td>
+  </tr>
+</table>            
+
+

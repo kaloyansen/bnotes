@@ -9,20 +9,23 @@ package DBH;
 # Author: Kaloyan Krastev <kaloyansen@gmail.com>                                        #
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 use strict; 
 use warnings;
+use warnings FATAL => q @all@;
+use POSIX qw(strftime);
 use DBI;
 use Data::Dumper;
-use DateTime::Format::MySQL; # yum install perl-DateTime-Format-MySQL
-use constant SESSION_EXPIRATION => '+123m';
-use constant SUPERSESSION_EXPIRATION => '+123m'; #'+10m';
-use constant DATABASE_CREDIT_FILE => '/var/www/.db';
+# use DateTime::Format::MySQL; # yum install perl-DateTime-Format-MySQL
+use constant SESSION_EXPIRATION => q @+123m@;
+use constant SUPERSESSION_EXPIRATION => q @+123m@; #'+10m';
+use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 
 my $debuglevel = 4;
 my $DBH = undef; 
-my %user_access_mask_definition = (); # user access control mask
+my %user_access_mask_definition = (); # user access control bit mask is in the __DATA__ section of the code
 
-sub control($) {
+sub control($) { # access mask definition
 
     my $code = shift // 'all';
     return $code eq 'all' ? %user_access_mask_definition : $user_access_mask_definition{$code};
@@ -177,7 +180,8 @@ sub database_credit_from($) {
 
 sub now {
 
-    return DateTime::Format::MySQL->format_datetime(DateTime->now);
+    #return DateTime::Format::MySQL->format_datetime(DateTime->now);
+    return strftime "%F %X", localtime;
 }
 
 sub auth_user($$) {
@@ -213,7 +217,7 @@ sub auth_superuser($$) {
     return 0;
 }    
 
-sub auth_admin($$) {
+sub auth_admin_deprecated($$) {
 
     my ($user, $password) = @_;
     my $from = "FROM USERS WHERE USER = \'$user\'";
@@ -236,7 +240,7 @@ sub read_access_definition { # read access bit definition
     while (<DATA>) {
 
         my @word = split / /, $_;
-        if ($#word > 0 && index($word[0], '#') < 0) {
+        if ($#word > 0) { # && index($word[0], '#') < 0) {
             $definition{$word[0]} = 2 ** $word[1];
         }
     }
@@ -247,10 +251,9 @@ sub read_access_definition { # read access bit definition
 1;
 
 # user access bit mask definition
+# format: name bit description
 
 __DATA__
-
-# format: name bit description
 
 ADM 0 administrator can modify users and change their access
 BGN 1 lev bulgarian read access
@@ -268,5 +271,4 @@ B12 12 bit 12 is available
 B13 13 bit 13 is available
 B14 14 bit 14 is available
 FOX 15 counterfeit banknotes/faux billets/фалшиви банкноти
-
 
