@@ -16,7 +16,7 @@ use warnings FATAL => q @all@;
 use POSIX qw(strftime);
 use DBI;
 use Data::Dumper;
-# use DateTime::Format::MySQL; # yum install perl-DateTime-Format-MySQL
+
 use constant SESSION_EXPIRATION => q @+123m@;
 use constant SUPERSESSION_EXPIRATION => q @+123m@; #'+10m';
 use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
@@ -24,6 +24,7 @@ use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 my $debuglevel = 4;
 my $DBH = undef; 
 my %user_access_mask_definition = (); # user access control bit mask is in the __DATA__ section of the code
+
 
 sub control($) { # access mask definition
 
@@ -68,7 +69,6 @@ sub db_disconnect {
         $DBH->disconnect();
         undef $DBH;
     }
-
 }
 
 sub db_select($) {

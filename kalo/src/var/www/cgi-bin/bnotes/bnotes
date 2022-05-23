@@ -263,6 +263,21 @@ sub view_find {
     print $PAGE_FIND->output;
 }
 
+sub access_fake {
+
+    my $allow_access = 0;
+    
+    if ($filter_bfalse) {
+        if ($access & DBH::control('FOX')) {
+            $allow_access = 1;
+        }
+    } else {
+        $allow_access = 1;
+    }
+    
+    return $allow_access;
+}
+
 sub view_countries {
 
     my $results1 = DBH::db_select("SELECT * FROM BNOTES WHERE BCODE = \'$cid\' ORDER BY NOMINAL");
@@ -273,16 +288,8 @@ sub view_countries {
     foreach my $result ( @$results1 ) {
 
         my $bfalse = "";
-        my $allow_access = 0;
-        if ($filter_bfalse) {
-            if ($access & DBH::control('FOX')) {
-                $allow_access = 1;
-            }
-        } else {
-            $allow_access = 1;
-        }
 
-        $bfalse = "2" if ($result->{BFALSE} && $allow_access);
+        $bfalse = "2" if ($result->{BFALSE} && access_fake());
 
 
         my $ysimg = "";
@@ -353,7 +360,7 @@ sub view_valute {
     }
 
     my @fake_loop;
-    if (scalar(@$results2 == 0)) {
+    if (scalar(@$results2 == 0) || !access_fake()) {
 
         my %row = (
             COUNTRY   => 0,
