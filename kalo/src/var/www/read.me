@@ -61,19 +61,19 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 
 ~~~~~~~> notes:
 
-0. total: neuf
+0. total: 9
 1. source code is written in perl
-2. comments are written in english
+2. all comments and labels are in english
 3. cgi scripts are webpage generating programs invoked by server software that operate according to the cgi specification
 4. user access is stored in the database CURRENCY, USERS table, column ADMIN
-5. access control bit mask definition is loaded from the __DATA__ section of DBH.pm, but there is a copy in read.me user access section
-6. database connexion codes are hidden in /var/www/.db 
-7. session expiration time is declared constant in DBH.pm
-8. a superuser is defined as an user with a first access bit (ADM) enabled
-9. counterfeits are not available for users with a last access bit (FOX) disabled
+5. access control bit mask definition is loaded from the __DATA__ section of the common database access library
+6. database connexion codes are hidden - do a copy of /var/www/.db.example to /var/www/.db and edit the latter to connect the database
+7. session expiration time is declared as a constant in the common database access library
+8. a superuser is defined as an user with an 'ADM' access bit enabled, so enable 'ADM' creates a superuser
+9. counterfeits are visible only for users with a 'FOX' access bit enabled, enable/disable 'FOX' to allow/disallow user access to counterfeit banknotes
 
 
-~~~~~~~> superuser actions:
+~~~~~~~> superuser actions (crud):
 
 1. create new user
 2. modify user access
@@ -84,8 +84,8 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 ~~~~~~~~> user access:
 
 name bit description
-~~~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ADM 0 administrator can crate, modify and delete users and change their access
+~~~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ADM 0 a superuser can crate, modify and delete users and change their database access
 BGN 1 lev bulgarian read access
 CAD 2 dollar canadian read access
 CHF 3 frank read access
