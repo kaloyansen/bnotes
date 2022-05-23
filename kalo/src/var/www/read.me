@@ -12,7 +12,7 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 /var/www/html/bnotes/favicon.ico                     site icon
 /var/www/html/bnotes/images/*                        site images
 /var/www/html/bnotes/index.shtml                     link to the user application
-/var/www/html/bnotes/main.css                        css style sheet definitions          *
+/var/www/html/bnotes/main.css                        style sheet definitions              *
 /var/www/html/bnotes/main.js                         java script functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~
 /var/www/cgi-bin/bnotes/badmin                       administration cgi script            *
@@ -51,16 +51,16 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 
 notes:
 
-0. total: seven
+0. total: neuf
 1. source code is written in perl
 2. comments are written in english
-3. cgi (common gateway interface) differs to wsgi (web server gateway interface)
 3. cgi scripts are webpage generating programs invoked by server software that operate according to the cgi specification
 4. user access is stored in the database CURRENCY, USERS table, column ADMIN
-5. access control bit mask definition is available in the __DATA__ section of DBH.pm
+5. access control bit mask definition is available in the __DATA__ section of DBH.pm and here under user access section
 6. database connexion codes are not accessible par web in /var/www/.db 
 7. session expiration time is declared constant in DBH.pm
-
+8. a superuser is defined as an user with a first access bit (ADM) enabled
+9. counterfeits are not available for users with a last access bit (FOX) disabled
 
 superuser actions:
 
@@ -70,6 +70,23 @@ superuser actions:
 4. delete user
 
 
+user access:
 
-
-
+name bit description
+~~~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ADM 0 administrator can modify users and change their access
+BGN 1 lev bulgarian read access
+CAD 2 dollar canadian read access
+CHF 3 frank read access
+DKK 4 krona read access
+USD 5 dollar read access
+TRY 6 lira read access
+EUR 7 euro read access
+GBP 8 pound read access
+NOK 9 kroni read access
+RUB 10 rubli read access
+B11 11 bit 11 is available
+B12 12 bit 12 is available
+B13 13 bit 13 is available
+B14 14 bit 14 is available
+FOX 15 counterfeit banknotes/faux billets/фалшиви банкноти
