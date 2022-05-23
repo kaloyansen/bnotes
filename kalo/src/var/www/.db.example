@@ -1,0 +1,5 @@
+DRVR mysql
+HOST localhost
+BASE database_name
+USER user_name
+PASS user_password
