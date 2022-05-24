@@ -196,10 +196,9 @@ sub auth_user($$) {
         DBH::db_update_column('ACTIVE', 1, $user); 
         DBH::db_update_column('LOGGED', DBH::now(), $user); 
         return $result->{ADMIN};
-    } else {
-        # print STDERR "User $user NOT authorized with password $password\n";
-        return -1;
     }
+
+    return -1;
 }
 
 sub auth_superuser($$) {

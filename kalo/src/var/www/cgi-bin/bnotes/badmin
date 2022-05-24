@@ -74,7 +74,9 @@ my $message = "please, make sure there aren't any users working with the softwar
 my $user = 0;
 my $color = 'black';
 
-$title = "USER ACCESS CONTROL" if ($action =~ ACTION_TABLE);
+$title = "USER ACCESS CONTROL" if ($action =~ ACTION_TABLE || $action =~ ACTION_ACCESS || $action =~ ACTION_CANCEL);
+$title = "USER ADMINISTRATION" if ($action =~ ACTION_DELETE || $action =~ ACTION_CREATE);
+$title = "USER ADMINISTRATION CONFIRMATION" if ($action =~ ACTION_DELETE_SUBMIT || $action =~ ACTION_CREATE_SUBMIT);
 $title = "USER DETAIL ADMINISTRATION" if ($action =~ ACTION_DETAIL);
 
 if (init_supersession()) {

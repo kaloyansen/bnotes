@@ -33,10 +33,10 @@ use constant ACTION_PREVIEW_FAKE => 'pfake';
 use constant ACTION_VALUTE => 'valute';
 
 use constant STATUS_BAD_INPUT => 400;
+use constant STATUS_GUEST => 340;
 use constant STATUS_LOGIN_FAILED => 500;
 use constant STATUS_LOGIN_SUCCESS => 200;
-use constant STATUS_USER_IN => 330;
-use constant STATUS_USER_OUT => 340;
+use constant STATUS_USER => 351;
 
 ################################################################################
 # front-end static templates
@@ -70,16 +70,11 @@ my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
 
 my $cgi = new CGI;# do some CGI stuff
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
-#my $cookie = $cgi->cookie(CGISESSID => $session->id );
-#my $cookie = $cgi->cookie( -name => $session->name, -value => $session->id );
 
-#print $cgi->header(-charset => 'utf-8', -cookie=>$cookie);
 print $session->header(-charset => 'utf-8');
-# print $session->header();
-# print $cgi->header(-charset => 'utf-8');
 
 # import cgi variables
-my $cid = $cgi->param('cid') // 0;
+my $cid = $cgi->param('cid');
 my $bid = $cgi->param('bid');
 my $fbid = $cgi->param('fbid');
 my $fbox = $cgi->param('fbox');
@@ -96,19 +91,19 @@ my $title = 0;
 
 DBH::db_connect();# powered by DBH.pm
 
-my $message = DBH::now(); #$client ? " Welcome $client" : $title;
-
-# filter_cid() if ($cid && $access);
-my $filter_bcodeval = 1; # control access par country
-my $filter_bfalse = 1; # control access counterfeit
+my $message = 0;
+my $filter_by_country = 1; # control access by country
+my $filter_fake = 1; # control access counterfeit
 my $default_access = DBH::control('BGN') | DBH::control('USD');
+
+# $message = DBH::now(); #$client ? " Welcome $client" : $title;
 
 # output top page 
 my $has_top = 1;
 if (needs_top()) {
     view_top();
 } elsif (needs_top_small()) {
-    view_top_small($filter_bcodeval);
+    view_top_small();
 } else {
     $has_top = 0;
 }
@@ -142,21 +137,29 @@ exit 1;
 
 sub view_login {
 
-    my $action = shift;
-    $PAGE_LOGIN->param(ACTION => $action);
+    my $logaction = shift;
+    $PAGE_LOGIN->param(ACTION => $logaction);
     $PAGE_LOGIN->param(FPWEMAIL => CONTACT_ADDRESS);
     print $PAGE_LOGIN->output;
 }
 
+sub view_logout {
+
+    $session->delete();
+    DBH::db_update_column('ACTIVE', 0, $client);
+
+    $PAGE_LOGOUT->param(USER => $client);
+    print $PAGE_LOGOUT->output;
+}
+
 sub view_top {
 
-    my $action = ACTION_LOGOUT;
-    my $label = $client;
+    my $actilog = ACTION_LOGIN;
+    my $labelog = 'LOG IN';
+    if ($client) {
 
-    if (!$client) {
-
-        $action = ACTION_LOGIN;
-        $label = 'Sign In';
+        $actilog = ACTION_LOGOUT;
+        $labelog = "$client: $access";
     }
 
 
@@ -164,8 +167,8 @@ sub view_top {
     $PAGE_TOP->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_TOP->param(ACTION_LIBRARY => ACTION_LIBRARY);
     $PAGE_TOP->param(ACTION_NEWS => ACTION_NEWS);
-    $PAGE_TOP->param(ACTION_LOG => $action);
-    $PAGE_TOP->param(LOG_LABEL => $label);
+    $PAGE_TOP->param(ACTION_LOG => $actilog);
+    $PAGE_TOP->param(LOG_LABEL => $labelog);
 
     print $PAGE_TOP->output;
 }
@@ -173,20 +176,20 @@ sub view_top {
 sub view_bottom {
 
     $message = $message ? $message : '';
-    my $action = ACTION_LOGIN;
-    my $label = 'LOG IN';
+
+    my $actilog = ACTION_LOGIN;
+    my $labelog = 'LOG IN';
     if ($client) {
 
-        $action = ACTION_LOGOUT;
-        $label = 'LOG OUT';
-        $label = $access;
+        $actilog = ACTION_LOGOUT;
+        $labelog = "$client: $access";
     }
 
     $PAGE_BOTTOM->param(ACTION_LIBRARY => ACTION_LIBRARY);
     $PAGE_BOTTOM->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_BOTTOM->param(ACTION_NEWS => ACTION_NEWS);
-    $PAGE_BOTTOM->param(ACTION_LABEL => $label);
-    $PAGE_BOTTOM->param(ACTION_LOG => $action);
+    $PAGE_BOTTOM->param(ACTION_LOG => $actilog);
+    $PAGE_BOTTOM->param(ACTION_LABEL => $labelog);
     $PAGE_BOTTOM->param(MESSAGE => $message);
 
     print $PAGE_BOTTOM->output;
@@ -196,12 +199,10 @@ sub view_bottom {
 
 sub view_top_small {
 
-    my $filter = shift // 0;
-
     my $where = '';
-    if ($filter) {
+    if ($filter_by_country) {
 
-        $access = $access ? $access : $access = $default_access;
+        $access = $access ? $access : $default_access;
         #$access |= DBH::control('EUR');
         # $access = DBH::control('USD') & DBH::control('EUR');
         $where = sql_access_filter($access);
@@ -261,21 +262,6 @@ sub view_find {
     $PAGE_FIND->param(STRFIND => $strfind);
 
     print $PAGE_FIND->output;
-}
-
-sub access_fake {
-
-    my $allow_access = 0;
-    
-    if ($filter_bfalse) {
-        if ($access & DBH::control('FOX')) {
-            $allow_access = 1;
-        }
-    } else {
-        $allow_access = 1;
-    }
-    
-    return $allow_access;
 }
 
 sub view_countries {
@@ -727,6 +713,21 @@ sub needs_bottom_complicated {
     return 1;
 }
 
+sub access_fake {
+
+    my $allow_fake_access = 0;
+    
+    if ($filter_fake) {
+        if ($access & DBH::control('FOX')) {
+            $allow_fake_access = 1;
+        }
+    } else {
+        $allow_fake_access = 1;
+    }
+    
+    return $allow_fake_access;
+}
+
 sub filter_cid {
 
     if (access_denied($access, $cid)) {
@@ -781,29 +782,6 @@ sub sql_access_filter($) {
     return $where;
 }
 
-sub init_session {
-
-    if ($session->param("~logged-in")) {
-
-        $client = $session->param("~user");
-        $access = $session->param("~access");
-        
-        return STATUS_USER_IN;
-    }
-
-    return STATUS_USER_OUT;
-}
-
-sub view_logout {
-
-    $session->delete();
-    DBH::db_update_column('ACTIVE', 0, $client);
-
-    $PAGE_LOGOUT->param(USER => $client);
-    print $PAGE_LOGOUT->output;
-}
-
-
 sub logout {
 
     destroy_session();
@@ -812,8 +790,8 @@ sub logout {
 
 sub login {
 
-    if (init_session() == STATUS_USER_IN) { # it should not happen
-        return STATUS_USER_IN;
+    if (init_session() == STATUS_USER) { # it should not happen
+        return STATUS_USER;
     }
     
     my $title = "LOG IN";
@@ -850,5 +828,20 @@ sub login {
     }
 }
 
+sub init_session {
+
+    if ($session->param("~logged-in")) {
+
+        $client = $session->param("~user");
+        $access = $session->param("~access");
+        
+        return STATUS_USER;
+    }
+
+    return STATUS_GUEST;
+}
+
 
 # EOF
+
+
