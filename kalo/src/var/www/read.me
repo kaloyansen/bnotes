@@ -4,6 +4,15 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 ================================================================================
 
 
+~~~~~~~> source code total 3444 lines of code
+type        lines
+~~~~~~~~~~~ ~~~~~
+perl/cgi     1622
+tmpl/html    1621
+javascript    136
+css/style      65
+
+
 ~~~~~~~> a full list of files in the catalogue application with a modification of
 '0' for unchanged files,
 '*' for updated files,
@@ -69,8 +78,8 @@ Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 5. access control bit mask definition is loaded from the __DATA__ section of the common database access library
 6. database connexion codes are hidden - do a copy of /var/www/.db.example to /var/www/.db and edit the latter to connect the database
 7. session expiration time is declared as a constant in the common database access library
-8. a superuser is defined as an user with an 'ADM' access bit enabled, so enable 'ADM' creates a superuser
-9. counterfeits are visible only for users with a 'FOX' access bit enabled, enable/disable 'FOX' to allow/disallow user access to counterfeit banknotes
+8. a superuser is defined as an user with her/his 'ADM' access bit enabled, enable 'ADM' only if you want to create a superuser
+9. enable/disable the 'FOX' access bit to allow/disallow user access to counterfeit banknotes
 
 
 ~~~~~~~> superuser actions (crud):
