@@ -21,16 +21,13 @@ use constant SESSION_EXPIRATION => q @+123m@;
 use constant SUPERSESSION_EXPIRATION => q @+123m@; #'+10m';
 use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 
-my $debuglevel = 4;
-my $DBH = undef; 
-my %user_access_mask_definition = (); # user access control bit mask is in the __DATA__ section of the code
-my $filter = 0;
+our $DBH = undef; 
+our %user_access_mask_definition = (); # for user access control bit mask see the __DATA__ section
+our $filter_country = 0;
+our $filter_fake = 0;
 
-sub user_control {
-
-    return $filter ? 1 : 0;
-}
-
+sub country_control { return $::filter_country ? 1 : 0; }
+sub fake_control { return $::filter_fake ? 1 : 0; }
 sub control { # access mask definition
 
     my $code = shift // 'all';
@@ -50,12 +47,13 @@ sub db_connect {
     # use constant SESSION_EXPIRATION => $credit{'SESSION_EXPIRATION'}; # '+123m';
     # use constant SUPERSESSION_EXPIRATION => $credit{'SUPERSESSION_EXPIRATION'}; # '+123m'; #'+10m';
 
-    my $DB_DRVR = $credit{'DRVR'};
-    my $DB_HOST = $credit{'HOST'};
-    my $DB_BASE = $credit{'BASE'};
-    my $DB_USER = $credit{'USER'};
-    my $DB_PASS = $credit{'PASS'};
-    $filter = $credit{'FILT'};
+    my $DB_DRVR = $credit{DRVR};
+    my $DB_HOST = $credit{HOST};
+    my $DB_BASE = $credit{BASE};
+    my $DB_USER = $credit{USER};
+    my $DB_PASS = $credit{PASS};
+    $::filter_country = $credit{FLTC};
+    $::filter_fake = $credit{FLTF};
 
     my $DB_SCHEMA = "DBI:$DB_DRVR:database=$DB_BASE;host=$DB_HOST";
 
@@ -112,7 +110,7 @@ sub db_insert($$) {
     my $sth = $DBH->prepare($sql);
     my $result = $sth->execute($user, $pass);
     if ($result) {
-        DBH::db_update_column('CREATED', DBH::now(), $user); 
+        DBH::db_update_column('CREATED', DBH::maintenant(), $user); 
     } else {
         die $!;
     }
@@ -184,9 +182,8 @@ sub database_credit_from($) {
     return %data;
 }
 
-sub now {
+sub maintenant {
 
-    #return DateTime::Format::MySQL->format_datetime(DateTime->now);
     return strftime "%F %X", localtime;
 }
 
@@ -200,7 +197,7 @@ sub auth_user($$) {
 
     if ($fine) {
         DBH::db_update_column('ACTIVE', 1, $user); 
-        DBH::db_update_column('LOGGED', DBH::now(), $user); 
+        DBH::db_update_column('LOGGED', DBH::maintenant(), $user); 
         return $result->{ADMIN};
     }
 

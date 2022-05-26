@@ -3,4 +3,5 @@ HOST localhost
 BASE database_name
 USER user_name
 PASS user_password
-FILT 5
+FLTC country_filter
+FLTF fake_filter

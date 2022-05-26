@@ -18,6 +18,7 @@ use CGI::Session qw/-ip-match/;
 use HTML::Template;
 
 use constant CONTACT_ADDRESS => "support\@bse.bg";
+
 use constant ACTION_ABOUT => 'about';
 use constant ACTION_COUNTRIES => 'countries';
 use constant ACTION_FAKE => 'fake';
@@ -53,7 +54,6 @@ my $PAGE_INFO = HTML::Template->new(filename => 'tmpl/page_info.tmpl');
 my $PAGE_INFOFAKE = HTML::Template->new(filename => 'tmpl/page_info_fake.tmpl');
 my $PAGE_LIBRARY = HTML::Template->new(filename => 'tmpl/page_library.tmpl');
 my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login.tmpl');
-my $PAGE_LOGOUT = HTML::Template->new(filename => 'tmpl/page_logout.tmpl');
 my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
 my $PAGE_NEWS = HTML::Template->new(filename => 'tmpl/page_news.tmpl');
 my $PAGE_PREVIEW =  HTML::Template->new(filename => 'tmpl/page_preview.tmpl');
@@ -84,20 +84,14 @@ my $action = $cgi->param('action') // ACTION_ABOUT;
 
 my $client = 0;
 my $access = 0;
-my $status = init_session();
-my $message = 0;
 my $title = 0;
+my $message = 0;
+my $status = init_session();
 
-DBH::db_connect();# powered by DBH.pm
-
+DBH::db_connect(); # powered by DBH.pm
 my $default_access = DBH::control('BGN') | DBH::control('USD');
-my $filter_by_country = 0; # control access by country
-my $filter_fake = 0; # control access counterfeit
-if (DBH::user_control()) {
-
-    $filter_by_country = 1;
-    $filter_fake = 1;
-}
+my $filter_by_country = DBH::country_control(); # control access by country
+my $filter_fake = DBH::fake_control(); # control access counterfeit
 
 # $message = DBH::now(); #$client ? " Welcome $client" : $title;
 # output top page 
@@ -113,7 +107,7 @@ if (needs_top()) {
 view_login(ACTION_LOGIN_SUBMIT) if ($action =~ ACTION_LOGIN);
 login() if ($action =~ ACTION_LOGIN_SUBMIT);
 
-view_logout() if ($action =~ ACTION_LOGOUT);
+logout() if ($action =~ ACTION_LOGOUT);
 view_about() if ($action =~ ACTION_ABOUT);
 view_news() if ($action =~ ACTION_NEWS);
 view_library() if ($action =~ ACTION_LIBRARY);
@@ -141,15 +135,6 @@ sub view_login {
     $PAGE_LOGIN->param(ACTION => $logaction);
     $PAGE_LOGIN->param(FPWEMAIL => CONTACT_ADDRESS);
     print $PAGE_LOGIN->output;
-}
-
-sub view_logout {
-
-    $session->delete();
-    DBH::db_update_column('ACTIVE', 0, $client);
-
-    $PAGE_LOGOUT->param(USER => $client);
-    print $PAGE_LOGOUT->output;
 }
 
 sub view_top {
@@ -666,11 +651,13 @@ sub view_msg($$) {
 
 sub view_message {
 
-    $PAGE_MSG->param(ACTION => ACTION_ABOUT);
+    $PAGE_MSG->param(ACTION => ACTION_NEWS);
     $PAGE_MSG->param(TITLE => $title);
     $PAGE_MSG->param(MESSAGE => $message);
 
+    view_top();
     print $PAGE_MSG->output;
+    view_bottom();
 }
 
 sub normalize_text($) {
@@ -684,15 +671,12 @@ sub normalize_text($) {
     return $txt;
 }
 
-# returns true for actions that do not require authentication
 sub needs_top {
 
-    return 1 if $action =~ ACTION_ABOUT;
-    return 1 if ($action =~ ACTION_LOGIN or $action =~ ACTION_LOGOUT);
+    return 1 if ($action =~ ACTION_ABOUT or $action =~ ACTION_LOGIN);# or $action =~ ACTION_LOGOUT);
     return 1 if ($action =~ ACTION_NEWS or $action =~ ACTION_LIBRARY);
     return 0;
 }
-
 
 sub needs_top_small {
 
@@ -784,8 +768,16 @@ sub access2where {
 
 sub logout {
 
-    destroy_session();
-    view_msg("LOG OUT", "$client HAS SUCCESSFULLY LOGGED OUT THE SYSTEM!");
+    $session->delete();
+    #session_destroy();
+
+    DBH::db_update_column('ACTIVE', 0, $client);
+
+    $title = 'LOG OUT';
+    $message = "$client HAS SUCCESSFULLY LOGGED OUT THE SYSTEM!";
+    view_message();
+    #$PAGE_LOGOUT->param(USER => $client);
+    #print $PAGE_LOGOUT->output;
 }
 
 sub login {

@@ -50,7 +50,6 @@ my $PAGE_PRODUCT = HTML::Template->new(filename => 'tmpl/page_product.tmpl');
 my $PAGE_TABLE = HTML::Template->new(filename => 'tmpl/page_table.tmpl');
 my $PAGE_TOP = HTML::Template->new(filename => 'tmpl/page_top_admin.tmpl');
 my $PAGE_USER = HTML::Template->new(filename => 'tmpl/page_user.tmpl');
-# my $PAGE_USERS = HTML::Template->new(filename => 'tmpl/page_users_admin.tmpl');
 
 ################################################################################
 # MAIN FUNCTION                                                                
