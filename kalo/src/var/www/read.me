@@ -1,16 +1,18 @@
-================================================================================
-BSE banknotes system
-Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
-================================================================================
+
+                                                 = BSE banknotes system =
+
+                                    Author: Hristo Grigorov <hgrigorov@gmail.com>
+                            Copyright (c) 2011-2022 Busoft Engineering. All right reserved.
 
 
-~~~~~~~> source code total 3444 lines of code
-type        lines
-~~~~~~~~~~~ ~~~~~
-perl/cgi     1622
-tmpl/html    1621
-javascript    136
-css/style      65
+~~~~~~~> source total → 3444 ← lines of code
+
+| code type  | lines |
+| ~~~~~~~~~~~| ~~~~~ |
+| perl/cgi   |  1622 |
+| tmpl/html  |  1621 |
+| javascript |   136 |
+| css/style  |    65 |
 
 
 ~~~~~~~> a full list of files in the catalogue application with a modification of
@@ -18,7 +20,7 @@ css/style      65
 '*' for updated files,
 '+' for new files added by Kalo,
 '-' for deprecated files not used any more that could be deleted and
-'$' for secret files outside version control.
+'$' for secret files outside version control
 
 /path/to/file.ext                                    file description                     modification
 /var/www/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~
@@ -77,7 +79,7 @@ css/style      65
 4. user access is stored in the database CURRENCY, USERS table, column ADMIN
 5. access control bit mask definition is loaded from the __DATA__ section of the common database access library
 6. database connexion codes are hidden - do a copy of /var/www/.db.example to /var/www/.db and edit the latter to connect the database
-7. session expiration time is declared as a constant in the common database access library
+7. session expiration time is declared constant in the common database access library
 8. a superuser is defined as an user with her/his 'ADM' access bit enabled, enable 'ADM' only if you want to create a superuser
 9. enable/disable the 'FOX' access bit to allow/disallow user access to counterfeit banknotes
 

@@ -16,6 +16,7 @@ use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+
 use constant CONTACT_ADDRESS => "support\@bse.bg";
 use constant ACTION_ABOUT => 'about';
 use constant ACTION_COUNTRIES => 'countries';
@@ -38,6 +39,7 @@ use constant STATUS_LOGIN_FAILED => 500;
 use constant STATUS_LOGIN_SUCCESS => 200;
 use constant STATUS_USER => 351;
 
+
 ################################################################################
 # front-end static templates
 ################################################################################
@@ -47,12 +49,11 @@ my $PAGE_BOTTOM = HTML::Template->new(filename => 'tmpl/page_bottom.tmpl');
 my $PAGE_COUNTRIES = HTML::Template->new(filename => 'tmpl/page_countries.tmpl');
 my $PAGE_FAKE = HTML::Template->new(filename => 'tmpl/page_fake.tmpl');
 my $PAGE_FIND = HTML::Template->new(filename => 'tmpl/page_find.tmpl');
-my $PAGE_INFOFAKE = HTML::Template->new(filename => 'tmpl/page_info_fake.tmpl');
 my $PAGE_INFO = HTML::Template->new(filename => 'tmpl/page_info.tmpl');
+my $PAGE_INFOFAKE = HTML::Template->new(filename => 'tmpl/page_info_fake.tmpl');
 my $PAGE_LIBRARY = HTML::Template->new(filename => 'tmpl/page_library.tmpl');
 my $PAGE_LOGIN = HTML::Template->new(filename => 'tmpl/page_login.tmpl');
 my $PAGE_LOGOUT = HTML::Template->new(filename => 'tmpl/page_logout.tmpl');
-# my $PAGE_MAIN = HTML::Template->new(filename => 'tmpl/page_main.tmpl');
 my $PAGE_MSG = HTML::Template->new(filename => 'tmpl/page_msg.tmpl');
 my $PAGE_NEWS = HTML::Template->new(filename => 'tmpl/page_news.tmpl');
 my $PAGE_PREVIEW =  HTML::Template->new(filename => 'tmpl/page_preview.tmpl');
@@ -66,11 +67,8 @@ my $PAGE_VALUTE = HTML::Template->new(filename => 'tmpl/page_valute.tmpl');
 # MAIN FUNCTION                                                               #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-#DBH::db_connect();# powered by DBH.pm
-
 my $cgi = new CGI;# do some CGI stuff
 my $session = new CGI::Session(undef, $cgi, {Directory=>'/tmp'}) or die CGI::Session->errstr;
-
 print $session->header(-charset => 'utf-8');
 
 # import cgi variables
@@ -87,17 +85,21 @@ my $action = $cgi->param('action') // ACTION_ABOUT;
 my $client = 0;
 my $access = 0;
 my $status = init_session();
+my $message = 0;
 my $title = 0;
 
 DBH::db_connect();# powered by DBH.pm
 
-my $message = 0;
-my $filter_by_country = 1; # control access by country
-my $filter_fake = 1; # control access counterfeit
 my $default_access = DBH::control('BGN') | DBH::control('USD');
+my $filter_by_country = 0; # control access by country
+my $filter_fake = 0; # control access counterfeit
+if (DBH::user_control()) {
+
+    $filter_by_country = 1;
+    $filter_fake = 1;
+}
 
 # $message = DBH::now(); #$client ? " Welcome $client" : $title;
-
 # output top page 
 my $has_top = 1;
 if (needs_top()) {
@@ -124,11 +126,9 @@ view_info_fake() if ($action =~ ACTION_INFO_FAKE);
 view_preview() if ($action =~ ACTION_PREVIEW);
 view_preview_fake() if ($action =~ ACTION_PREVIEW_FAKE);
 
-my $has_bottom = $has_top ? view_bottom() : 0;
-
+my $exitatus = $has_top ? view_bottom() : 0;
 DBH::db_disconnect();# disconnect database
-
-exit 1;
+exit $exitatus;
 
 
 ################################################################################
@@ -194,7 +194,7 @@ sub view_bottom {
 
     print $PAGE_BOTTOM->output;
     
-    return 1;
+    return 0;
 }
 
 sub view_top_small {
@@ -205,7 +205,7 @@ sub view_top_small {
         $access = $access ? $access : $default_access;
         #$access |= DBH::control('EUR');
         # $access = DBH::control('USD') & DBH::control('EUR');
-        $where = sql_access_filter($access);
+        $where = access2where();
     }
 
     my $results = DBH::db_select("SELECT * FROM COUNTRY $where ORDER BY BCODEVAL");
@@ -716,12 +716,14 @@ sub needs_bottom_complicated {
 sub access_fake {
 
     my $allow_fake_access = 0;
-    
     if ($filter_fake) {
+
         if ($access & DBH::control('FOX')) {
+
             $allow_fake_access = 1;
         }
     } else {
+
         $allow_fake_access = 1;
     }
     
@@ -759,15 +761,13 @@ sub open_cid {
     return 0;
 }
 
-sub sql_access_filter($) {
+sub access2where {
 
-    my $droit = shift;
-
-    my $where = '';
+    my $where = 0;
     my %code = DBH::control('all');
     while( my ($clef, $value) = each(%code) ) {
-#    foreach my $clef (keys(DBH::control('all'))) {
-        if ($droit & $value) {
+
+        if ($access & $value) {
 
             if ($where) {
 
@@ -779,7 +779,7 @@ sub sql_access_filter($) {
         }
     }
 
-    return $where;
+    return $where ? $where : '';
 }
 
 sub logout {

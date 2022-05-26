@@ -24,9 +24,14 @@ use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 my $debuglevel = 4;
 my $DBH = undef; 
 my %user_access_mask_definition = (); # user access control bit mask is in the __DATA__ section of the code
+my $filter = 0;
 
+sub user_control {
 
-sub control($) { # access mask definition
+    return $filter ? 1 : 0;
+}
+
+sub control { # access mask definition
 
     my $code = shift // 'all';
     return $code eq 'all' ? %user_access_mask_definition : $user_access_mask_definition{$code};
@@ -50,6 +55,7 @@ sub db_connect {
     my $DB_BASE = $credit{'BASE'};
     my $DB_USER = $credit{'USER'};
     my $DB_PASS = $credit{'PASS'};
+    $filter = $credit{'FILT'};
 
     my $DB_SCHEMA = "DBI:$DB_DRVR:database=$DB_BASE;host=$DB_HOST";
 
