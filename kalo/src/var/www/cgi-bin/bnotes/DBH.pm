@@ -23,11 +23,16 @@ use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 
 our $DBH = undef; 
 our %user_access_mask_definition = (); # for user access control bit mask see the __DATA__ section
-our $filter_country = 0;
-our $filter_fake = 0;
 
-sub country_control { return $::filter_country ? 1 : 0; }
-sub fake_control { return $::filter_fake ? 1 : 0; }
+
+sub paraname { return 'motor'; }
+sub control_fake { return DBH::control_country(); }
+sub control_country { 
+
+    return 1 if DBH::db_toggle_status(DBH::paraname());
+    return 0;
+}
+
 sub control { # access mask definition
 
     my $code = shift // 'all';
@@ -36,24 +41,20 @@ sub control { # access mask definition
 
 sub db_connect {
 
-    if (defined $DBH) {
+    if (defined $::DBH) {
         print "DBH already defined!!!\n";
         return;
     }
 
-    %user_access_mask_definition = DBH::read_access_definition(); # user access control mask
+    %user_access_mask_definition = DBH::load_access_definition(); # user access control mask
     my %credit = database_credit_from(DATABASE_CREDIT_FILE);
-
     # use constant SESSION_EXPIRATION => $credit{'SESSION_EXPIRATION'}; # '+123m';
     # use constant SUPERSESSION_EXPIRATION => $credit{'SUPERSESSION_EXPIRATION'}; # '+123m'; #'+10m';
-
     my $DB_DRVR = $credit{DRVR};
     my $DB_HOST = $credit{HOST};
     my $DB_BASE = $credit{BASE};
     my $DB_USER = $credit{USER};
     my $DB_PASS = $credit{PASS};
-    $::filter_country = $credit{FLTC};
-    $::filter_fake = $credit{FLTF};
 
     my $DB_SCHEMA = "DBI:$DB_DRVR:database=$DB_BASE;host=$DB_HOST";
 
@@ -78,9 +79,9 @@ sub db_disconnect {
 sub db_select($) {
 
     my $query = shift;
-    my $results = $DBH->selectall_arrayref($query, { Slice => {} });
+    my $result = $DBH->selectall_arrayref($query, { Slice => {} });
 
-    return $results;    
+    return $result;    
 }
 
 sub db_select_array($) {
@@ -101,6 +102,43 @@ sub db_select_row($) {
     my $result = $sth->fetchrow_hashref();
     return $result;
 }
+
+sub db_toggle_status {
+
+    my $option = shift;
+    return DBH::db_select_array("SELECT `VALUE` FROM `CONTROL` WHERE `OPTION`='$option'");
+}
+
+sub db_toggle {
+
+    my $option = shift;
+    my $newval = undef;
+
+    my $sql = "CREATE TABLE IF NOT EXISTS `CONTROL` ( `OPTION` VARCHAR(15), `VALUE` int(11) DEFAULT 0 )";
+    my $sth = $DBH->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+    
+    my $column = DBH::db_select_array("SELECT COUNT(*) FROM `CONTROL` WHERE `OPTION`='$option'");
+    if ($column == 1) {
+
+        # my $result = DBH::db_select_array("SELECT `VALUE` FROM `CONTROL` WHERE `OPTION`='$option'");
+        my $result = DBH::db_toggle_status($option);
+        $newval = $result ? 0 : 1;
+        $sql = "UPDATE CONTROL SET `VALUE` = '$newval' WHERE `OPTION`='$option'";
+    } else {    
+
+        $newval = 1;
+        $sql = "INSERT INTO CONTROL(`OPTION`, `VALUE`) VALUES('$option', $newval)";
+    }
+
+    $sth = $DBH->prepare($sql);
+    $sth->execute();
+    $sth->finish();
+    
+    return $newval;
+}
+
 
 sub db_insert($$) {
 
@@ -219,23 +257,7 @@ sub auth_superuser($$) {
     return 0;
 }    
 
-sub auth_admin_deprecated($$) {
-
-    my ($user, $password) = @_;
-    my $from = "FROM USERS WHERE USER = \'$user\'";
-    my $result = DBH::db_select_row("SELECT * $from");  
-    my $fine = DBH::db_select_array("SELECT COUNT(*) $from AND PASSWORD = MD5(\'$password\')");
-
-    if ( ($fine) && ($result->{ADMIN} == 1) ) {
-        #print STDERR "User $user authorized with password $password\n";
-        return 1;
-    } else {
-        #print STDERR "User $user NOT authorized with password $password\n";
-        return 0;
-    }
-}
-
-sub read_access_definition { # read access bit definition
+sub load_access_definition { # read access bit definition
 
     my %definition = ();
 
@@ -251,6 +273,8 @@ sub read_access_definition { # read access bit definition
 }
 
 1;
+
+
 
 # user access bit mask definition
 # format: name bit description

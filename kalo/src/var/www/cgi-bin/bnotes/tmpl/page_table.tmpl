@@ -99,9 +99,14 @@
         
           <td><input name="action"
                      type="submit"
-                     value="<TMPL_VAR NAME=ACTNEW />"
+                     value="<TMPL_VAR NAME=ACTNEW>"
                      title="create new user"
                      style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+          <td><input name="action"
+                     type="submit"
+                     value="<TMPL_VAR NAME=IACTION>"
+                     title="<TMPL_VAR NAME=ILABEL>"
+                     style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
         </tr>
       </form>
     </table>

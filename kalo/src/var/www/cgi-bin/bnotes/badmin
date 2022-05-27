@@ -19,12 +19,13 @@ use CGI::Session qw/-ip-match/;
 use HTML::Template;
 use constant ACTION_ACCESS => 'save';
 use constant ACTION_CANCEL => 'cancel';
+use constant ACTION_CONTROL => 'control';
 use constant ACTION_CREATE => 'new';
 use constant ACTION_CREATE_SUBMIT => 'create';
 use constant ACTION_DBUPDATE => '_dbupform';
 use constant ACTION_DBUPDATE_SUBMIT => 'updatabase';
 use constant ACTION_DELETE => 'delete';
-use constant ACTION_DELETE_SUBMIT => 'confirme';
+use constant ACTION_DELETE_SUBMIT => 'confirm';
 use constant ACTION_DETAIL => 'detail';
 use constant ACTION_FUPDATE => '_flupdate';
 use constant ACTION_FUPDATE_SUBMIT => '_flupsub';
@@ -105,35 +106,37 @@ if (init_supersession()) {
     $action = ACTION_MESSAGE;
 }
 
+
 view_top();
 
-view_message() if ($action =~ ACTION_MESSAGE);
-view_login(ACTION_LOGIN) if ($action =~ ACTION_LOGIN);
-view_logout() if ($action =~ ACTION_LOGOUT);
+view_message() if $action =~ ACTION_MESSAGE;
+view_login(ACTION_LOGIN) if $action =~ ACTION_LOGIN;
+view_logout() if $action =~ ACTION_LOGOUT;
 
-view_dbupdate(ACTION_DBUPDATE_SUBMIT) if ($action =~ ACTION_DBUPDATE);
-dbupdate() if ($action =~ ACTION_DBUPDATE_SUBMIT);
+view_dbupdate(ACTION_DBUPDATE_SUBMIT) if $action =~ ACTION_DBUPDATE;
+dbupdate() if $action =~ ACTION_DBUPDATE_SUBMIT;
 
-view_fupdate(ACTION_FUPDATE_SUBMIT) if ($action =~ ACTION_FUPDATE);
-fupdate() if ($action =~ ACTION_FUPDATE_SUBMIT);
+view_fupdate(ACTION_FUPDATE_SUBMIT) if $action =~ ACTION_FUPDATE;
+fupdate() if $action =~ ACTION_FUPDATE_SUBMIT;
 
-view_product() if ($action =~ ACTION_PRODUCT);
-view_table() if ($action =~ ACTION_TABLE);
-view_table() if ($action =~ ACTION_CANCEL);
-view_user(0) if ($action =~ ACTION_CREATE);
-view_user(1) if ($action =~ ACTION_DETAIL);
-update_user_access() if ($action =~ ACTION_ACCESS);
-update_user_password() if ($action =~ ACTION_PASSWORD);
-create_user() if ($action =~ ACTION_CREATE_SUBMIT);
+view_product() if $action =~ ACTION_PRODUCT;
+view_table() if $action =~ ACTION_TABLE;
+view_table() if $action =~ ACTION_CANCEL;
+view_user(0) if $action =~ ACTION_CREATE;
+view_user(1) if $action =~ ACTION_DETAIL;
+update_user_access() if $action =~ ACTION_ACCESS;
+update_user_password() if $action =~ ACTION_PASSWORD;
+create_user() if $action =~ ACTION_CREATE_SUBMIT;
+toggle_control(DBH::paraname()) if $action =~ ACTION_CONTROL;
 
-view_confirmation('really delete user?', ACTION_DELETE_SUBMIT) if ($action =~ ACTION_DELETE);
-delete_user() if ($action =~ ACTION_DELETE_SUBMIT);
+view_confirmation('really delete user?', ACTION_DELETE_SUBMIT) if $action =~ ACTION_DELETE;
+delete_user() if $action =~ ACTION_DELETE_SUBMIT;
 
 view_bottom();
 
 DBH::db_disconnect();# disconnect from database
 
-exit 1;
+exit 0;
 
 
 ################################################################################
@@ -286,9 +289,16 @@ sub view_confirmation {
 
 sub view_table {
 
-    my $user_data = DBH::db_select("SELECT * FROM USERS");
+    my $ilabel = 'enable control';
+    my $icon = 'ok2.gif';
+    if (DBH::db_toggle_status(DBH::paraname())) {
+
+        $ilabel = 'disable control';
+        $icon = 'ok1.gif';
+    }
 
     my @loop1;
+    my $user_data = DBH::db_select("SELECT * FROM USERS");
     foreach my $result ( @$user_data ) {
 
         my $admin = $result->{ADMIN};
@@ -328,6 +338,10 @@ sub view_table {
 
     $PAGE_TABLE->param(LOOP_1 => \@loop1);
     $PAGE_TABLE->param(ACTNEW => ACTION_CREATE);
+    $PAGE_TABLE->param(IACTION => ACTION_CONTROL);
+    $PAGE_TABLE->param(ILABEL => $ilabel);
+    $PAGE_TABLE->param(ICON => $icon);
+
     print $PAGE_TABLE->output;
 }
 
@@ -475,6 +489,16 @@ sub create_user {
         $message = 'create new user aborted - input not good - try again';
         view_user(0);
     }
+}
+
+sub toggle_control {
+
+    my $parameter_name = shift;
+    
+    DBH::db_toggle($parameter_name);
+    $message =  DBH::db_toggle_status($parameter_name) ? 'control activated' : 'control desactivated';
+    
+    view_table();
 }
 
 sub delete_user {

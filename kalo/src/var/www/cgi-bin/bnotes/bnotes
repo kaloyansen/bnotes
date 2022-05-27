@@ -90,13 +90,12 @@ my $status = init_session();
 
 DBH::db_connect(); # powered by DBH.pm
 my $default_access = DBH::control('BGN') | DBH::control('USD');
-my $filter_by_country = DBH::country_control(); # control access by country
-my $filter_fake = DBH::fake_control(); # control access counterfeit
+my $control_country = DBH::control_country(); # control access by country
+my $control_fake = DBH::control_fake(); # control access counterfeit
 
-# $message = DBH::now(); #$client ? " Welcome $client" : $title;
-# output top page 
+
 my $has_top = 1;
-if (needs_top()) {
+if (needs_top()) { # output top page 
     view_top();
 } elsif (needs_top_small()) {
     view_top_small();
@@ -104,25 +103,25 @@ if (needs_top()) {
     $has_top = 0;
 }
 
-view_login(ACTION_LOGIN_SUBMIT) if ($action =~ ACTION_LOGIN);
-login() if ($action =~ ACTION_LOGIN_SUBMIT);
+view_login(ACTION_LOGIN_SUBMIT) if $action =~ ACTION_LOGIN;
+$status = login() if $action =~ ACTION_LOGIN_SUBMIT;
 
-logout() if ($action =~ ACTION_LOGOUT);
-view_about() if ($action =~ ACTION_ABOUT);
-view_news() if ($action =~ ACTION_NEWS);
-view_library() if ($action =~ ACTION_LIBRARY);
-view_find() if ($action =~ ACTION_FIND);
-view_countries() if ($action =~ ACTION_COUNTRIES);
-view_valute() if ($action =~ ACTION_VALUTE);
-view_info() if ($action =~ ACTION_INFO);
-view_fake() if ($action =~ ACTION_FAKE);
-view_info_fake() if ($action =~ ACTION_INFO_FAKE);
-view_preview() if ($action =~ ACTION_PREVIEW);
-view_preview_fake() if ($action =~ ACTION_PREVIEW_FAKE);
+logout() if $action =~ ACTION_LOGOUT;
+view_about() if $action =~ ACTION_ABOUT;
+view_news() if $action =~ ACTION_NEWS;
+view_library() if $action =~ ACTION_LIBRARY;
+view_find() if $action =~ ACTION_FIND;
+view_countries() if $action =~ ACTION_COUNTRIES;
+view_valute() if $action =~ ACTION_VALUTE;
+view_info() if $action =~ ACTION_INFO;
+view_fake() if $action =~ ACTION_FAKE;
+view_info_fake() if $action =~ ACTION_INFO_FAKE;
+view_preview() if $action =~ ACTION_PREVIEW;
+view_preview_fake() if $action =~ ACTION_PREVIEW_FAKE;
 
-my $exitatus = $has_top ? view_bottom() : 0;
 DBH::db_disconnect();# disconnect database
-exit $exitatus;
+$status = $has_top ? view_bottom() : 0; # output bottom page 
+exit $status;
 
 
 ################################################################################
@@ -140,17 +139,16 @@ sub view_login {
 sub view_top {
 
     my $actilog = ACTION_LOGIN;
-    my $labelog = 'LOG IN';
+    my $labelog = 'LOGIN';
     if ($client) {
 
         $actilog = ACTION_LOGOUT;
-        $labelog = "$client: $access";
+        $labelog = 'LOG OUT';
     }
 
-
     $PAGE_TOP->param(ACTION_COUNTRIES => ACTION_COUNTRIES);
-    $PAGE_TOP->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_TOP->param(ACTION_LIBRARY => ACTION_LIBRARY);
+    $PAGE_TOP->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_TOP->param(ACTION_NEWS => ACTION_NEWS);
     $PAGE_TOP->param(ACTION_LOG => $actilog);
     $PAGE_TOP->param(LOG_LABEL => $labelog);
@@ -163,18 +161,21 @@ sub view_bottom {
     $message = $message ? $message : '';
 
     my $actilog = ACTION_LOGIN;
-    my $labelog = 'LOG IN';
+    my $labelog = 'LOGIN';
     if ($client) {
 
         $actilog = ACTION_LOGOUT;
-        $labelog = "$client: $access";
-    }
+        open my $fh, '>', \$labelog;
+        printf $fh "user: $client, access: %16b", $access;
+        close $fh;
+        $labelog = "LOG OUT";        
+   }
 
     $PAGE_BOTTOM->param(ACTION_LIBRARY => ACTION_LIBRARY);
     $PAGE_BOTTOM->param(ACTION_ABOUT => ACTION_ABOUT);
     $PAGE_BOTTOM->param(ACTION_NEWS => ACTION_NEWS);
     $PAGE_BOTTOM->param(ACTION_LOG => $actilog);
-    $PAGE_BOTTOM->param(ACTION_LABEL => $labelog);
+    $PAGE_BOTTOM->param(LOG_LABEL => $labelog);
     $PAGE_BOTTOM->param(MESSAGE => $message);
 
     print $PAGE_BOTTOM->output;
@@ -185,7 +186,7 @@ sub view_bottom {
 sub view_top_small {
 
     my $where = '';
-    if ($filter_by_country) {
+    if ($control_country) {
 
         $access = $access ? $access : $default_access;
         #$access |= DBH::control('EUR');
@@ -700,7 +701,7 @@ sub needs_bottom_complicated {
 sub access_fake {
 
     my $allow_fake_access = 0;
-    if ($filter_fake) {
+    if ($control_fake) {
 
         if ($access & DBH::control('FOX')) {
 
@@ -712,37 +713,6 @@ sub access_fake {
     }
     
     return $allow_fake_access;
-}
-
-sub filter_cid {
-
-    if (access_denied($access, $cid)) {
-
-        $cid = open_cid($access);
-    }
-}
-
-sub access_denied($$) {
-
-    my ($droit, $clef) = @_;
-
-    if (!$clef) {                       return 0; }
-    if ($droit & DBH::control($clef)) { return 0; }
-    else {                              return 1; }
-}
-
-sub open_cid {
-
-    my %code = DBH::control('all');
-    while( my ($clef, $value) = each(%code) ) {
-
-        if ($access & $value) {
-
-            return $clef;
-        }
-    }
-
-    return 0;
 }
 
 sub access2where {
@@ -773,8 +743,9 @@ sub logout {
 
     DBH::db_update_column('ACTIVE', 0, $client);
 
-    $title = 'LOG OUT';
+    $title = 'LOG OUT/ДЕЗАКТИВАЦИЯ';
     $message = "$client HAS SUCCESSFULLY LOGGED OUT THE SYSTEM!";
+    $message = "$message\nБЛАГОДАРИМ ВИ, $client, ВАШИЯТ ПРОФИЛ Е ДЕЗАКТИВИРАН";
     view_message();
     #$PAGE_LOGOUT->param(USER => $client);
     #print $PAGE_LOGOUT->output;
@@ -786,8 +757,9 @@ sub login {
         return STATUS_USER;
     }
     
-    my $title = "LOG IN";
+    $title = "LOGIN/ИДЕНТИФИКАЦИЯ";
     $message = "LOGIN FAILED - TRY AGAIN OR CONTACT ADMINISTRATOR AT ".CONTACT_ADDRESS;
+    $message = "$message\nИДЕНТИФИКАЦИЯТА НЕУСПЕШНА - ОПИТАЙТЕ ОТНОВО ИЛИ СЕ СВЪРЖЕТЕ С АДМИНИСТРАТОРА ".CONTACT_ADDRESS;
 
     my $user = $cgi->param('user') // 0;
     my $pass = $cgi->param('password') // 0;
@@ -812,10 +784,10 @@ sub login {
 
         $client = $user;
         $access = $result;
-        $message = "$client HAS SUCCESSFULLY LOGGED IN THE SYSTEM";
+        $title = "WELCOME $user ЗДРАВЕЙТЕ";
+        $message = "$client HAS SUCCESSFULLY LOGGED IN THE SYSTEM $access";
 
         view_message();
-        DBH::db_update_column('ACTIVE', 1, $client);
         return STATUS_LOGIN_SUCCESS;
     }
 }
@@ -837,3 +809,33 @@ sub init_session {
 # EOF
 
 
+sub control_cid {
+
+    if (access_denied($access, $cid)) {
+
+        $cid = open_cid($access);
+    }
+}
+
+sub access_denied($$) {
+
+    my ($droit, $clef) = @_;
+
+    if (!$clef) {                       return 0; }
+    if ($droit & DBH::control($clef)) { return 0; }
+    else {                              return 1; }
+}
+
+sub open_cid {
+
+    my %code = DBH::control('all');
+    while( my ($clef, $value) = each(%code) ) {
+
+        if ($access & $value) {
+
+            return $clef;
+        }
+    }
+
+    return 0;
+}
