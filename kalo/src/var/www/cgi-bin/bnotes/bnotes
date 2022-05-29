@@ -11,11 +11,12 @@
 
 use strict; 
 use warnings;
+
 use CGI;
-use DBH;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use HTML::Template;
+use DBH;
 
 use constant CONTACT_ADDRESS => "support\@bse.bg";
 
@@ -89,7 +90,7 @@ my $message = 0;
 my $status = init_session();
 
 DBH::db_connect(); # powered by DBH.pm
-my $default_access = DBH::control('BGN') | DBH::control('USD');
+my $default_access = DBH::default_access(); # DBH::control('BGN') | DBH::control('USD');
 my $control_country = DBH::control_country(); # control access by country
 my $control_fake = DBH::control_fake(); # control access counterfeit
 

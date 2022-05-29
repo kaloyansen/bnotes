@@ -11,12 +11,14 @@
 
 use strict; 
 use warnings;
+
 use CGI;
-use DBH;
-use Socket;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
 use CGI::Session qw/-ip-match/;
+# use Socket;
 use HTML::Template;
+use DBH;
+
 use constant ACTION_ACCESS => 'save';
 use constant ACTION_CANCEL => 'cancel';
 use constant ACTION_CONTROL => 'control';
@@ -77,24 +79,26 @@ my $color = 'black';
 $title = "USER ACCESS CONTROL" if ($action =~ ACTION_TABLE || $action =~ ACTION_ACCESS || $action =~ ACTION_CANCEL);
 $title = "USER ADMINISTRATION" if ($action =~ ACTION_DELETE || $action =~ ACTION_CREATE);
 $title = "USER ADMINISTRATION CONFIRMATION" if ($action =~ ACTION_DELETE_SUBMIT || $action =~ ACTION_CREATE_SUBMIT);
-$title = "USER DETAIL ADMINISTRATION" if ($action =~ ACTION_DETAIL);
+$title = "USER DETAIL ADMINISTRATION" if $action =~ ACTION_DETAIL;
+
+$message = 'activate access control to control user access' if not DBH::db_toggle_status(DBH::paraname());
+$message = 'action cancelled' if $action =~ ACTION_CANCEL;
 
 if (init_supersession()) {
 
-    if ($session->param("~logged-in")) { # allow action only if user is authorised
+    if ($session->param("~logged-in")) { # allow action if user is authorised
 
         $user = $session->param("~user");
-        $message = "superuser: $user: $message";
+        $message = "superuser: $user; $message";
         $color = 'blue';
         $action = $action;
     } else { # user gets the login page if unauthorised
         
+        $action = ACTION_LOGIN;
         $session->delete();
-
         $title = "SUPERACCESS";
         $message = 'login needed for superuser access';
         $color = 'orange';
-        $action = ACTION_LOGIN;
     }
 } else { # user gets the error page if access is denied
 
@@ -127,7 +131,7 @@ view_user(1) if $action =~ ACTION_DETAIL;
 update_user_access() if $action =~ ACTION_ACCESS;
 update_user_password() if $action =~ ACTION_PASSWORD;
 create_user() if $action =~ ACTION_CREATE_SUBMIT;
-toggle_control(DBH::paraname()) if $action =~ ACTION_CONTROL;
+toggle_control() if $action =~ ACTION_CONTROL;
 
 view_confirmation('really delete user?', ACTION_DELETE_SUBMIT) if $action =~ ACTION_DELETE;
 delete_user() if $action =~ ACTION_DELETE_SUBMIT;
@@ -152,10 +156,8 @@ sub init_supersession {
     my $user = $cgi->param('user') or return 1;
     my $password = $cgi->param('password') or return 1;
 
-    # if we came this far, user did submit the login form
-    # so let's try to load his/her profile if name/psswds match
-    #if (auth_userr($user, $password)) {
     if (DBH::auth_superuser($user, $password)) {
+
         $session->expire(DBH::SUPERSESSION_EXPIRATION);
         $session->param("~user", $user);
         $session->param("~logged-in", 1);
@@ -291,10 +293,12 @@ sub view_table {
 
     my $ilabel = 'enable control';
     my $icon = 'ok2.gif';
+    my $border = 1;
     if (DBH::db_toggle_status(DBH::paraname())) {
 
         $ilabel = 'disable control';
         $icon = 'ok1.gif';
+        $border = 1;
     }
 
     my @loop1;
@@ -341,6 +345,7 @@ sub view_table {
     $PAGE_TABLE->param(IACTION => ACTION_CONTROL);
     $PAGE_TABLE->param(ILABEL => $ilabel);
     $PAGE_TABLE->param(ICON => $icon);
+    $PAGE_TABLE->param(BORDER => $border);
 
     print $PAGE_TABLE->output;
 }
@@ -493,11 +498,14 @@ sub create_user {
 
 sub toggle_control {
 
-    my $parameter_name = shift;
-    
-    DBH::db_toggle($parameter_name);
-    $message =  DBH::db_toggle_status($parameter_name) ? 'control activated' : 'control desactivated';
-    
+    $color = 'blue';
+    $message = 'user access control is disabled';
+    if (DBH::db_toggle(DBH::paraname())) {
+
+        $color = 'green';
+        $message = "user access control is active";
+    }
+
     view_table();
 }
 

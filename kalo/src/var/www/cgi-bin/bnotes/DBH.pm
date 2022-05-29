@@ -13,9 +13,10 @@ package DBH;
 use strict; 
 use warnings;
 use warnings FATAL => q @all@;
+
 use POSIX qw(strftime);
 use DBI;
-use Data::Dumper;
+# use Data::Dumper;
 
 use constant SESSION_EXPIRATION => q @+123m@;
 use constant SUPERSESSION_EXPIRATION => q @+123m@; #'+10m';
@@ -24,7 +25,7 @@ use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 our $DBH = undef; 
 our %user_access_mask_definition = (); # for user access control bit mask see the __DATA__ section
 
-
+sub default_access { return  DBH::control('BGN') | DBH::control('USD'); }
 sub paraname { return 'motor'; }
 sub control_fake { return DBH::control_country(); }
 sub control_country { 
@@ -147,14 +148,9 @@ sub db_insert($$) {
 
     my $sth = $DBH->prepare($sql);
     my $result = $sth->execute($user, $pass);
-    if ($result) {
-        DBH::db_update_column('CREATED', DBH::maintenant(), $user); 
-    } else {
-        die $!;
-    }
-
     $sth->finish();
-    return $result;
+
+    return $result ? DBH::db_update_column('CREATED', DBH::maintenant(), $user) : $!; 
 }
 
 sub db_delete($) {
@@ -163,14 +159,9 @@ sub db_delete($) {
 
     my $sth = $DBH->prepare($sql);
     my $result = $sth->execute(shift);
-    if ($result) {
-        ;
-    } else {
-        die $!;
-    }
-
     $sth->finish();
-    return $result;
+
+    return $result ? $result : $!;
 }
 
 sub db_update_column($$$) {
@@ -180,28 +171,19 @@ sub db_update_column($$$) {
 
     my $sth = $DBH->prepare($sql);
     my $result = $sth->execute($value, $user);
-    if ($result) {
-        ;
-    } else {
-        return $!;
-    }
-
     $sth->finish();
-    return $result;
+
+    
+    return $result ? $result : $!;
 }
 
 sub db_update($) {
 
     my $sth = $DBH->prepare(shift);
     my $result = $sth->execute();
-    if ($result) {
-        ;
-    } else {
-        die $!;
-    }
-
     $sth->finish();
-    return $result;
+
+    return $result ? $result : $!;
 }
 
 sub database_credit_from($) {

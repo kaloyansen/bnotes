@@ -1,11 +1,11 @@
 <!-- PAGE TABLE BEGIN -->
 
-<table width="95%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#FFFFFF">
+<table width="95%" border="<TMPL_VAR NAME=BORDER />" align="center" cellpadding="1" cellspacing="0" bgcolor="#fff">
   <tr>
     <td>
 
 
-      <table width="100%" border="1" cellpadding="3" cellspacing="0" bgcolor="#FFFFFF">
+      <table width="100%" border="<TMPL_VAR NAME=BORDER />" cellpadding="3" cellspacing="0" bgcolor="#fff">
 
         <tr align="center" class="conntent">
           <td><strong>№</strong></td>
@@ -75,16 +75,19 @@
                      type="submit"
                      value="<TMPL_VAR NAME=ACTDET />"
                      title="change <TMPL_VAR NAME=USER /> password"
+                     class="write"
                      style="background-image: url('/bnotes/images/information.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
           <td><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=ACTUP />"
                      title="save <TMPL_VAR NAME=USER /> access"
+                     class="write"
                      style="background-image: url('/bnotes/images/ok1.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
           <td><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=ACTDEL />"
                      title="delete <TMPL_VAR NAME=USER /> forever"
+                     class="write"
                      style="background-image: url('/bnotes/images/delete.jpg'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
 	      <!-- img src="/bnotes/images/delete.jpg" width="20" height="20" border="0" -->
         </tr>
@@ -93,22 +96,36 @@
 
       </TMPL_LOOP>
 
-      <form action="/cgi-bin/bnotes/badmin" method="GET">
+      <!-- form action="/cgi-bin/bnotes/badmin" method="GET">
 
         <tr>
         
-          <td><input name="action"
-                     type="submit"
-                     value="<TMPL_VAR NAME=ACTNEW>"
-                     title="create new user"
-                     style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
-          <td><input name="action"
+          <td colspan="2"><input name="action"
+                                 type="submit"
+                                 value="<TMPL_VAR NAME=ACTNEW>"
+                                 title="create new user"
+                                 class="write"
+                                 style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+          <td colspan="16"><input name="action"
                      type="submit"
                      value="<TMPL_VAR NAME=IACTION>"
                      title="<TMPL_VAR NAME=ILABEL>"
-                     style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
+                     style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td -->
+        <tr>
+          <td colspan="2"
+              class="write"
+              title="create new user"
+              onClick="javascript:document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=ACTNEW>'" 
+              style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: center;" />new</td>
+          <td colspan="21">
+          <td colspan="3"
+              class="write"
+              title="<TMPL_VAR NAME=ILABEL>"
+              onClick="javascript:document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=IACTION>'" 
+              style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: center;" /><TMPL_VAR NAME=ILABEL></td>
+
         </tr>
-      </form>
+
     </table>
 
 
