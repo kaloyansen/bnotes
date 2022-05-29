@@ -1,78 +1,92 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="bg" xml:lang="bg">
-<head>
-  <title>SOFTWARE CATALOGUE BANKNOTES</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
-  <link href="/bnotes/main.css" rel="stylesheet" type="text/css" />
-</head>
+  <head>
+    <title>SOFTWARE CATALOGUE BANKNOTES</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+    <link href="/bnotes/main.css" rel="stylesheet" type="text/css" />
+  </head>
 
-<body style="leftmargin: 0; topmargin: 0">
+  <body style="leftmargin: 0; topmargin: 0">
 
-<form name="form1" method="post" action="">
-  <table width="98%" height="100%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#333333">
-    <tr>
-      <td><table width="100%" height="100%" border="0" align="center" cellpadding="4" cellspacing="0">
-        <tr> 
-          <td colspan="2" background="/bnotes/images/bg_mid.gif"><table width="100%" border="0" cellspacing="0" cellpadding="0">
-            <tr> 
-              <td height="45"> 
-                <table width="100%" border="0" cellspacing="1" cellpadding="1">
-                  <tr> 
-                    <td>&nbsp;&nbsp;<img src="/bnotes/images/bullet_small.gif" width="7" height="7" />&nbsp;
-                      <span class="titlewhite"><TMPL_VAR NAME=NAMEFALSE></span> 
-                    </td>
-                    <td align="right">
-                      <input name="Submit" type="submit" value="Close" onclick="window.close();" class="button">
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
+    <form name="form1" method="post" action="">
+      <table width="98%" height="100%" border="0" align="center" cellpadding="1" cellspacing="0" bgcolor="#333333">
+        <tr>
+          <td>
+            <table width="100%" height="100%" border="0" align="center" cellpadding="4" cellspacing="0">
+              <tr> 
+                <td colspan="2" background="/bnotes/images/bg_mid.gif">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr> 
+                      <td height="45"> 
+                        <table width="100%" border="0" cellspacing="1" cellpadding="1">
+                          <tr> 
+                            <td>&nbsp;&nbsp;
+                              <img src="/bnotes/images/bullet_small.gif" width="7" height="7" />&nbsp;
+                              <span class="titlewhite"><TMPL_VAR NAME=NAMEFALSE></span> 
+                            </td>
+                            <td align="right">
+                              <input name="Submit"
+                                     type="submit"
+                                     value="Close"
+                                     onclick="window.close();"
+                                     class="button"/>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-      <tr> 
-        <td colspan="2" align="left" bgcolor="#FFFFFF"></td>
-      </tr>
+              <tr> 
+                <td colspan="2" align="left" bgcolor="#FFFFFF"></td>
+              </tr>
 
-      <tr> 
-        <td width="50%" align="left" valign="top" bgcolor="#FFFFFF"> 
-          <div align="left" class="conntent"> 
-              <font size="2">&nbsp;<img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle" /> 
-              <strong>ORIGINAL NOTE</strong><br /><TMPL_VAR NAME=MINFOO></font>
-              <font size="2"><br /><br />
-              <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PORIGINAL>" /><br />
-              </font>
-          </div>
-        </td>
+              <tr> 
+                <td width="50%" align="left" valign="top" bgcolor="#FFFFFF"> 
+                  <div align="left" class="conntent"> 
+                    <font size="2">&nbsp;
+                      <img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle" /> 
+                      <strong>ORIGINAL NOTE</strong><br /><TMPL_VAR NAME=MINFOO>
+                    </font>
+                    <font size="2"><br /><br />
+                      <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PORIGINAL>" /><br />
+                    </font>
+                  </div>
+                </td>
 
-        <td width="50%" align="left" valign="top" bgcolor="#FFFFFF">
-	  <div align="left" class="conntent"> 
-	  <font size="2"><img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle" /> 
-          <strong>COUNTERFEIT</strong><br /><TMPL_VAR NAME=MINFOF><br /><br />
-            <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PFALSE>" border="0" /> 
-          </font> 
-         </div>
-       </td>
+                <td width="50%" align="left" valign="top" bgcolor="#FFFFFF">
+	              <div align="left" class="conntent"> 
+	                <font size="2">
+	                  <img src="/bnotes/images/information.gif" width="21" height="21" align="absmiddle" /> 
+                      <strong>COUNTERFEIT</strong><br /><TMPL_VAR NAME=MINFOF><br /><br />
+                      <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=PFALSE>" border="0" /> 
+                    </font> 
+                  </div>
+                </td>
 
-      </tr>
+              </tr>
       
-      <tr> 
-        <td colspan="2" style="background-image:url(/bnotes/images/hline.gif)" bgcolor="#FFFFFF"><img src="/bnotes/images/hline.gif" width="33" height="5" /></td>
-      </tr>
+              <tr> 
+                <td colspan="2"
+                    style="background-image:url(/bnotes/images/hline.gif)"
+                    bgcolor="#FFFFFF">
+                  <img src="/bnotes/images/hline.gif" width="33" height="5" />
+                </td>
+              </tr>
         
-      <tr> 
-        <td height="100%" colspan="2" bgcolor="#FFFFFF">&nbsp;</td>
-      </tr>
-    </table>
-  </td>
-</tr>
-</table>
+              <tr> 
+                <td height="100%" colspan="2" bgcolor="#FFFFFF">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
  
-</form>
+    </form>
 
-</body>
+  </body>
 </html>
 
