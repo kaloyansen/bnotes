@@ -9,8 +9,8 @@
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-use strict; 
-use warnings;
+# use strict; 
+# use warnings;
 
 use CGI;
 use CGI::Carp qw/fatalsToBrowser warningsToBrowser/;
@@ -809,34 +809,3 @@ sub init_session {
 
 # EOF
 
-
-sub control_cid {
-
-    if (access_denied($access, $cid)) {
-
-        $cid = open_cid($access);
-    }
-}
-
-sub access_denied($$) {
-
-    my ($droit, $clef) = @_;
-
-    if (!$clef) {                       return 0; }
-    if ($droit & DBH::control($clef)) { return 0; }
-    else {                              return 1; }
-}
-
-sub open_cid {
-
-    my %code = DBH::control('all');
-    while( my ($clef, $value) = each(%code) ) {
-
-        if ($access & $value) {
-
-            return $clef;
-        }
-    }
-
-    return 0;
-}

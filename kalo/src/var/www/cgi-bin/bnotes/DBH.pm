@@ -10,9 +10,9 @@ package DBH;
 # Copyright (c) 2022-2023 Busoft Engineering. All right reserved.                       #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-use strict; 
-use warnings;
-use warnings FATAL => q @all@;
+# use strict; 
+# use warnings;
+# use warnings FATAL => q @all@;
 
 use POSIX qw(strftime);
 use DBI;
