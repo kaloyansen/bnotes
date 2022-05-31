@@ -19,7 +19,7 @@ use DBI;
 # use Data::Dumper;
 
 use constant SESSION_EXPIRATION => q @+30m@;
-use constant SUPERSESSION_EXPIRATION => q @+30m@; #'+10m';
+use constant SUPERSESSION_EXPIRATION => q @+10m@;
 use constant DATABASE_CREDIT_FILE => q @/var/www/.db@;
 
 our $DBH = undef; 
