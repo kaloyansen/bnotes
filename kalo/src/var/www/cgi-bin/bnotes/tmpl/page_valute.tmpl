@@ -1,5 +1,5 @@
 
-<script type="text/javascript">var light = 0;</script>
+<script>var light = 1;</script>
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr> 
@@ -113,7 +113,12 @@
                       <td>
                         <div style="name:fimg; position:relative; z-index:2;" id="fimg">
                           <a href="/cgi-bin/bnotes/bnotes?action=<TMPL_VAR NAME=ACTION_PREVIEW>&bid=<TMPL_VAR NAME=BID>">
-                            <img onContextMenu='return false;' src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BFRONT>" name="imgfront" width="600px" border="0" id="imgfront" />
+                            <img onContextMenu='return false;'
+                                 src="/bnotes/data/<TMPL_VAR NAME=COUNTRY>/<TMPL_VAR NAME=BFRONT>"
+                                 name="imgfront"
+                                 width="600px"
+                                 border="0"
+                                 id="imgfront" />
                           </a>
                           <TMPL_LOOP NAME="front_zone_loop">
                           <div id="zonef<TMPL_VAR NAME=IDX>" style="position:absolute; left:0px; top:0px; width:22px; height:24px; z-index:1">
@@ -127,7 +132,7 @@
          'Information','width=800, height=600, scrollbars=yes, resizable=yes')" />
                             </a>
                           </div>
-                          <script type="text/javascript">MoveLayers("zonef<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XF>, <TMPL_VAR NAME=YF>, 'fimg');</script>
+                          <script>MoveLayers("zonef<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XF>, <TMPL_VAR NAME=YF>, 'fimg');</script>
                           </TMPL_LOOP>
                         </div>
                       </td>
@@ -163,7 +168,7 @@
          'Information','width=800,height=600,scrollbars=yes,resizable=yes')" />
                       </a>
                     </div>
-                    <script type="text/javascript">MoveLayers("zoneb<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XB>, <TMPL_VAR NAME=YB>, 'bimg');</script>
+                    <script>MoveLayers("zoneb<TMPL_VAR NAME=IDX>", <TMPL_VAR NAME=XB>, <TMPL_VAR NAME=YB>, 'bimg');</script>
                     </TMPL_LOOP>
                   </div>
                 </td>
@@ -176,29 +181,24 @@
 
       <!-- END TABLE BANKNOTE -->
 
-          </td>
-        </tr>
-      </table>
-
-    </td>
-
-  </tr>
-
-  <tr>
-    <td align="left" valign="bottom" style="background-image:url(/bnotes/images/blueline_mid.gif)">
-      <img src="/bnotes/images/blueline_bot.gif" width="13" height="265" />
     </td>
   </tr>
 </table>
 
-<hr noshade size="1">
+<tr>
+  <td align="left" valign="bottom" style="background-image:url(/bnotes/images/blueline_mid.gif)">
+    <img src="/bnotes/images/blueline_bot.gif" width="13" height="265" />
+  </td>
+</tr>
+
 
 <table width="98%" border="0" align="center" cellpadding="1" cellspacing="1" >
+<hr noshade size="1">
   <tr><td class="maintitle">INFORMATION</td></tr>
   <tr><td class="conntent"><TMPL_VAR NAME=MADDINFO></td></tr>
   <tr><td class="maintitle"><br />UV Image</td></tr>
   <tr><td class="conntent"><TMPL_VAR NAME=MUVINFO></td></tr>
 </table>
 
-<span class="maintitle"> </span>
+<span class="maintitle"></span>
 

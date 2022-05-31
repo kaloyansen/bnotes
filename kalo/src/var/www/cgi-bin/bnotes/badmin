@@ -291,13 +291,13 @@ sub view_confirmation {
 
 sub view_table {
 
-    my $ilabel = 'enable control';
-    my $icon = 'ok2.gif';
+    my $ilabel = 'user access is out of control - enable control as soon as possible, ...';
+    my $icon = '#f66';
     my $border = 1;
     if (DBH::db_toggle_status(DBH::paraname())) {
 
-        $ilabel = 'disable control';
-        $icon = 'ok1.gif';
+        $ilabel = 'user access control is running ...';
+        $icon = '#efe';
         $border = 1;
     }
 

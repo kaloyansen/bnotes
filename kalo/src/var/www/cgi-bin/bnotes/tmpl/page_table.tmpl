@@ -96,35 +96,19 @@
 
       </TMPL_LOOP>
 
-      <!-- form action="/cgi-bin/bnotes/badmin" method="GET">
-
-        <tr>
-        
-          <td colspan="2"><input name="action"
-                                 type="submit"
-                                 value="<TMPL_VAR NAME=ACTNEW>"
-                                 title="create new user"
-                                 class="write"
-                                 style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td>
-          <td colspan="16"><input name="action"
-                     type="submit"
-                     value="<TMPL_VAR NAME=IACTION>"
-                     title="<TMPL_VAR NAME=ILABEL>"
-                     style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%;" /></td -->
-        <tr>
-          <td colspan="2"
-              class="write"
-              title="create new user"
-              onClick="javascript:document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=ACTNEW>'" 
-              style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: center;" />new</td>
-          <td colspan="21">
-          <td colspan="3"
-              class="write"
-              title="<TMPL_VAR NAME=ILABEL>"
-              onClick="javascript:document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=IACTION>'" 
-              style="background-image: url('/bnotes/images/<TMPL_VAR NAME=ICON>'); border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: center;" /><TMPL_VAR NAME=ILABEL></td>
-
-        </tr>
+      <tr>
+        <td colspan="3">
+        <td colspan="1"
+            class="write"
+            title="create new user"
+            onClick="document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=ACTNEW>'" 
+            style="background-image: url('/bnotes/images/plus.gif'); border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: center;" />new</td>
+        <td colspan="22"
+            class="write"
+            title="<TMPL_VAR NAME=ILABEL>"
+            onClick="document.location='/cgi-bin/bnotes/badmin?action=<TMPL_VAR NAME=IACTION>'" 
+            style="background-color: <TMPL_VAR NAME=ICON>; border:none; background-repeat:no-repeat;background-size:100% 100%; text-align: right;" /><TMPL_VAR NAME=ILABEL></td>
+      </tr>
 
     </table>
 
