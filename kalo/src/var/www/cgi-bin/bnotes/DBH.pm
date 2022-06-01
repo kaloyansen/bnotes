@@ -48,9 +48,8 @@ sub db_connect {
     }
 
     %user_access_mask_definition = DBH::load_access_definition(); # user access control mask
-    my %credit = database_credit_from(DATABASE_CREDIT_FILE);
-    # use constant SESSION_EXPIRATION => $credit{'SESSION_EXPIRATION'}; # '+123m';
-    # use constant SUPERSESSION_EXPIRATION => $credit{'SUPERSESSION_EXPIRATION'}; # '+123m'; #'+10m';
+    my %credit = DBH::database_credit_from(DATABASE_CREDIT_FILE);
+
     my $DB_DRVR = $credit{DRVR};
     my $DB_HOST = $credit{HOST};
     my $DB_BASE = $credit{BASE};
