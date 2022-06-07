@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indexing>
+ <object alt="" name="Picture 1" object_type="graphic"/>
+ <paragraph index="15" node_type="writer">На първа страница да се зарежда списък с новини, хронологично последните най-горе.</paragraph>
+ <paragraph index="16" node_type="writer">По външен вид да е нещо подобно на новините от следния линк:</paragraph>
+ <paragraph index="17" node_type="writer">http://catalog.con-bk.ru/news/</paragraph>
+ <paragraph index="18" node_type="writer">В новините да може да се добавят картинки и линкове към вътрешни страници.</paragraph>
+ <paragraph index="20" node_type="writer">Да има архив на новините.</paragraph>
+ <paragraph index="22" node_type="writer">Отгоре и/или отстрани да има филтър и форма с кратки заглавия на новините и избор по месеци, подобно на следния линк:</paragraph>
+ <paragraph index="23" node_type="writer">https://www.risk-guidance.eu/publications/2018?view=archive&amp;month=2</paragraph>
+ <paragraph index="26" node_type="writer">ДВИЖЕЩА СЕ ЛЕНТА С ПОСЛЕДНИ НОВИНИ???</paragraph>
+ <paragraph index="28" node_type="writer">„Вътрешни страници“ – да се добави нова лента, подобно на лентата с линковете отдолу, като основно да се вижда линка към новините.</paragraph>
+ <paragraph index="30" node_type="writer">Да се сложи филтър за показване /скриване на банкнотите извън обращение в списъка са банкноти. По подразбиране да се виждат всички. При клик в кутийката да се извеждат само тези в обращение.</paragraph>
+ <paragraph index="34" node_type="writer">Размер на прозореца в който се показват картинките – да зависи от размера на самата картинка???</paragraph>
+ <paragraph index="36" node_type="writer">Може ли да се показва флаш???</paragraph>
+ <paragraph index="38" node_type="writer">Екран с инфо за даден номинал – да се добави колона за бързо избиране на други номинали, без да се връща в предишен екран.</paragraph>
+ <paragraph index="40" node_type="writer">Или пък падащо меню със списък с номиналите.</paragraph>
+ <paragraph index="42" node_type="writer">Подобно на колоната вляво на адрес: </paragraph>
+ <paragraph index="43" node_type="writer">http://www.banknotechecker.k-info.ru/notes.php?lc=31</paragraph>
+ <paragraph index="46" node_type="writer">Възможност за избор на фон и размер на шрифта.</paragraph>
+ <paragraph index="48" node_type="writer">До линка за UV да се добавят още два линка, които да „активират“ изображениe „IR” (инфраред) на банкнотата.</paragraph>
+</indexing>
