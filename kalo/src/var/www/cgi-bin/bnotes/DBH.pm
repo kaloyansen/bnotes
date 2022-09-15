@@ -245,7 +245,7 @@ sub load_access_definition { # read access bit definition
     while (<DATA>) {
 
         my @word = split / /, $_;
-        if ($#word > 0) { # && index($word[0], '#') < 0) {
+        if ($#word > 0) {
             $definition{$word[0]} = 2 ** $word[1];
         }
     }
@@ -254,8 +254,6 @@ sub load_access_definition { # read access bit definition
 }
 
 1;
-
-
 
 # user access bit mask definition
 # format: name bit description

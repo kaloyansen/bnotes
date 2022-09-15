@@ -31,13 +31,13 @@ services:
     environment:
       PMA_HOST: db
 
-  maildev:
-    image: maildev/maildev:1.1.0
-    container_name: maildev_container
-    command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
-    ports:
-      - 8077:80
-    restart: always
+#  maildev:
+#    image: maildev/maildev:1.1.0
+#    container_name: maildev_container
+#    command: bin/maildev --web 80 --smtp 25 --hide-extensions STARTTLS
+#    ports:
+#      - 8006:80
+#    restart: always
 
   kalo:
     image: kalo:6.6.6
@@ -66,9 +66,3 @@ services:
       start_period: 10s
 
 
-#volumes:
-#  dbdata:
-
-# docker-compose up -d --build
-
-# docker login -u kaloyanski 96f54244-9317-4c1e-8c4d-eeae820b28bd

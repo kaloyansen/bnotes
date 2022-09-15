@@ -98,7 +98,7 @@ if (init_supersession()) {
         $session->delete();
         $title = "SUPERACCESS";
         $message = 'login needed for superuser access';
-        $color = 'orange';
+        $color = 'white';
     }
 } else { # user gets the error page if access is denied
 

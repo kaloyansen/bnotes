@@ -20,6 +20,9 @@ use DBH;
 
 use constant CONTACT_ADDRESS => "support\@bse.bg";
 
+use constant DATA_FILE_NEW => "../../html/bnotes/data/fnew1.txt";
+use constant DATA_FILE_FACT => "../../html/bnotes/data/ffact.txt";
+
 use constant ACTION_ABOUT => 'about';
 use constant ACTION_COUNTRIES => 'countries';
 use constant ACTION_FAKE => 'fake';
@@ -139,6 +142,7 @@ sub view_login {
 
 sub view_top {
 
+    $title = 'SOFTWARE CATALOGUE BANKNOTES' if !$title;
     my $actilog = ACTION_LOGIN;
     my $labelog = 'LOGIN';
     if ($client) {
@@ -153,13 +157,17 @@ sub view_top {
     $PAGE_TOP->param(ACTION_NEWS => ACTION_NEWS);
     $PAGE_TOP->param(ACTION_LOG => $actilog);
     $PAGE_TOP->param(LOG_LABEL => $labelog);
+    $PAGE_TOP->param(TITLE => $title);
 
     print $PAGE_TOP->output;
 }
 
 sub view_bottom {
 
-    $message = $message ? $message : '';
+    $message = $message ? $message : 'no message';
+    $message = text_from_file(DATA_FILE_FACT, 'line');
+    #$message = '<div><span>fdjvnkdq dfslqkj cdefzd dsl ff fdzkfjdsf</span><span> fdsjf fedlj fdfslk fdsklj fdslkj</span><span> fdssd fdf ffg g glkzes dfdsfdfsdl</span></div>';
+    #$message = '';
 
     my $actilog = ACTION_LOGIN;
     my $labelog = 'LOGIN';
@@ -611,32 +619,15 @@ sub view_preview_fake {
 
 sub view_news {
 
-    my $msg = "";
-    open(FD, "../../html/bnotes/data/fnew.txt");
-    while(<FD>) {
-        $_ =~ s/%NL%/<br \/>/g; 
-        $msg = $msg . $_; 
-    }
-    close(FD);
-
+    my $msg = text_from_file(DATA_FILE_NEW);
     $PAGE_NEWS->param(NEWS => $msg);
-
     print $PAGE_NEWS->output;
 }
 
 sub view_library {
 
-
-    my $msg = "";
-    open(FD, "../../html/bnotes/data/ffact.txt") || die "Can't open ffact.txt: $!\n";
-    while(<FD>) { 
-        $_ =~ s/%NL%/<br \/>/g;
-        $msg = $msg . $_; 
-    }
-    close(FD);
-
+    my $msg = text_from_file(DATA_FILE_FACT);
     $PAGE_LIBRARY->param(FFACT => $msg);
-
     print $PAGE_LIBRARY->output;
 }
 
@@ -653,13 +644,32 @@ sub view_msg($$) {
 
 sub view_message {
 
-    $PAGE_MSG->param(ACTION => ACTION_NEWS);
-    $PAGE_MSG->param(TITLE => $title);
-    $PAGE_MSG->param(MESSAGE => $message);
-
     view_top();
-    print $PAGE_MSG->output;
+    view_msg($message, $title);
     view_bottom();
+}
+
+sub text_from_file {
+
+    my ($file_name, $option) = @_;
+    return 'that subroutine needs a text file to read from' if !$file_name;
+    $option = 'block' if !$option;
+
+    my $msg = "";
+
+    open(FD, $file_name) || return "cannot open $file_name $!\n";
+    while(<FD>) {
+
+        if ($option eq 'line') {
+            $_ =~ s/%NL%/<\/span><span>/g; 
+        } else {
+            $_ =~ s/%NL%/<br \/>/g; 
+        }
+        $msg = $msg . $_; 
+    }
+    close(FD);
+
+    return $msg;
 }
 
 sub normalize_text($) {

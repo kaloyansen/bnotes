@@ -1,0 +1,50 @@
+@charset "UTF-8";
+
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+.marquee, .marquet, .marquew {
+	background-image: url(/bnotes/images/bg_mid.gif);
+    color: white;
+    line-height: 2px;
+    font-size: 22px;    
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.marquew {
+    width: 88vw;
+}
+
+.marquee p {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 5s linear infinite;
+}
+
+.marquew p {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquew 60s linear infinite running;
+}
+
+.marquet p {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquet 3s linear 1;
+}
+
+@keyframes marquee {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+@keyframes marquew {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+@keyframes marquet {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}

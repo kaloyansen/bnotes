@@ -1,22 +1,13 @@
 <!-- PGE BOTTOM BEGIN -->
 
                 <table style="width: 100%; height: 53" border="0" cellpadding="1" cellspacing="0">
-                  <tr> 
-                    <td height="5"><img src="/bnotes/images/line_orange.gif" width="100%" height="4" /></td>
-                  </tr>
-                  <tr>             
-                    <td height="50" align="center">
-                      <font face="Arial" size="1" color="<TMPL_VAR NAME=COLOR />">
-                        <i>
-                          <strong>
-                            <TMPL_VAR NAME=MESSAGE />
-                          </strong>
-                        </i>
-                      </font>
-                    </td>
-                  </tr>
-                </table>
-
+                  <tr><td height="5"><img src="/bnotes/images/line_orange.gif" width="100%" height="4" /></td></tr>
+                  <tr>
+                    <td>
+                      <div class="marquee">
+                        <font face="Arial"
+                              color="<TMPL_VAR NAME=COLOR>">
+                          <p><TMPL_VAR NAME=MESSAGE></p></font></div></td></tr><tr></table>
               </td>
             </tr>
           </table>
